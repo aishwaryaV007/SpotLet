@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+web-build/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Secrets - NEVER commit these
+.env
+.env.local
+.env.production
+.env.staging
+
+# macOS
+.DS_Store
+
+# Mobile certificates / keys
+*.pem
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Logs
+npm-debug.*
+*.log
+
+# TypeScript
+*.tsbuildinfo

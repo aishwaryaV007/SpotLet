@@ -298,12 +298,18 @@ SpotLet/                                  # Project root
 │   ├── icon.png                          # App icon
 │   └── splash.png                        # Splash screen (bg: #0c0c0b)
 │
+├── components/                           # Custom shared React components
+│   ├── CustomMap.tsx                     # Native maps wrapper (imports react-native-maps)
+│   ├── CustomMap.web.tsx                 # Web maps wrapper (mock fallback, no native imports)
+│   └── PropertyDetailsModal.tsx          # Bottom sheet / modal displaying property details
+│
 ├── contexts/
 │   └── AuthContext.tsx                   # React Context: signInWithOTP · verifyOTP · signOut · isLoggedIn
 │
 ├── lib/
 │   ├── supabase.ts                       # Supabase client + all DB/Auth helpers
-│   └── cloudinary.ts                     # Cloudinary image upload via REST API
+│   ├── cloudinary.ts                     # Cloudinary image upload via REST API
+│   └── polyfills.ts                      # DOMException polyfill for Hermes engine
 │
 ├── types/
 │   ├── auth.ts                           # AuthState · AuthUser · AuthSession · OTPResponse · UserProfile
@@ -314,6 +320,7 @@ SpotLet/                                  # Project root
 ├── .gitignore                            # Ignores node_modules, .expo, .env, build outputs
 ├── app.config.js                         # Dynamic Expo config (injects env vars at build time)
 ├── app.json                              # Expo manifest: name, slug, permissions, SDK version
+├── entry.js                              # Custom main entry point (registers polyfills before routing)
 ├── metro.config.js                       # Metro bundler config (uses Expo defaults)
 ├── package.json                          # Dependencies, scripts, version
 └── tsconfig.json                         # TypeScript: strict mode, path alias @/* → ./*
@@ -616,6 +623,7 @@ git push origin feature/your-feature-name
 | Reanimated crash | Ensure `react-native-worklets ^0.4.0` is installed (required by Reanimated v4) |
 | Port 8081 in use | `npx expo start --port 8082` |
 | `@/*` import not resolving | Check `tsconfig.json` paths and `metro.config.js` |
+| Web bundler fails on `react-native-maps` | Resolved using platform-specific map wrappers (`CustomMap.tsx` and `CustomMap.web.tsx`) so that the bundler completely skips compiling the native Google Maps package on web. |
 
 ---
 

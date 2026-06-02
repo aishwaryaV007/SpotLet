@@ -323,7 +323,8 @@ SpotLet/                                  # Project root
 ├── entry.js                              # Custom main entry point (registers polyfills before routing)
 ├── metro.config.js                       # Metro bundler config (uses Expo defaults)
 ├── package.json                          # Dependencies, scripts, version
-└── tsconfig.json                         # TypeScript: strict mode, path alias @/* → ./*
+├── tsconfig.json                         # TypeScript: strict mode, path alias @/* → ./*
+└── vercel.json                           # Vercel deployment config (SPA routing rewrites)
 ```
 
 ---
@@ -364,11 +365,11 @@ npx expo start --clear
 
 ### Available Scripts
 
-```bash
 npm start          # Start Expo Metro bundler
 npm run android    # Start with Android target
 npm run ios        # Start with iOS target
 npm run web        # Start with web target
+npm run build      # Export production web bundle for Vercel/Netlify hosting
 npm run lint       # Run ESLint
 npm test           # Run Jest tests (watch mode)
 ```
@@ -600,6 +601,17 @@ git push origin feature/your-feature-name
 - All new screens go under `app/(tabs)/` or `app/auth/`
 - All DB operations go through `lib/supabase.ts`
 - All image uploads go through `lib/cloudinary.ts`
+
+---
+
+## 🌐 Deployment (Vercel)
+
+SpotLet is pre-configured for seamless deployment as a Single Page Application (SPA) on **Vercel**:
+
+1. **Routing Redirects (`vercel.json`)**: Configures fallback rewrites forwarding all page requests back to `/index.html` so that refreshing pages (like `/map`) does not return a Vercel server 404 error.
+2. **Build Configuration**:
+   - **Build Command**: `npm run build` (which runs `expo export --platform web`)
+   - **Output Directory**: `dist` (default Expo Web production export directory)
 
 ---
 

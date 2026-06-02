@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, getSession, updateUserProfile } from '@/lib/supabase';
-import { AuthState, AuthUser, AuthSession } from '@/types/auth';
+import { supabase } from '@/lib/supabase';
+import { AuthState } from '@/types/auth';
 
 interface AuthContextType extends AuthState {
   signInWithOTP: (phone: string) => Promise<boolean>;
@@ -22,6 +22,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Check session on mount
   useEffect(() => {
     checkSession();
+    
+    // SAFETY NET: Force isLoading to false after 5 seconds no matter what
+    const safetyTimer = setTimeout(() => {
+      setState(prev => {
+        if (prev.isLoading) {
+          console.warn('Safety timeout: forcing isLoading to false');
+          return { ...prev, isLoading: false };
+        }
+        return prev;
+      });
+    }, 5000);
     
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -45,13 +56,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
 
     return () => {
+      clearTimeout(safetyTimer);
       subscription?.unsubscribe();
     };
   }, []);
 
   async function checkSession() {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      // Add a timeout so the app doesn't hang forever if Supabase is unreachable
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Session check timed out')), 10000)
+      );
+      
+      const sessionPromise = supabase.auth.getSession();
+      
+      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+      
       if (session) {
         setState({
           user: session.user as any,
@@ -68,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       }
     } catch (error: any) {
+      console.warn('Session check failed:', error.message);
       setState({
         user: null,
         session: null,
@@ -81,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const { data, error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         phone: phone,
       });
 
@@ -109,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setState(prev => ({ ...prev, isLoading: true, error: null }));
       
-      const { data, error } = await supabase.auth.verifyOtp({
+      const { error } = await supabase.auth.verifyOtp({
         phone: phone,
         token: token,
         type: 'sms',

@@ -10,12 +10,14 @@ import {
   Image,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+
+import MapView, { Marker, PROVIDER_GOOGLE } from '@/components/CustomMap';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { createProperty } from '@/lib/supabase';
@@ -66,6 +68,7 @@ export default function AddScreen() {
 
   // Submission State
   const [submitting, setSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Geocoding States
   const [geocoding, setGeocoding] = useState(false);
@@ -149,6 +152,7 @@ export default function AddScreen() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setPhotos(prev => [...prev, result.assets[0].uri]);
+        setUploadError(null);
       }
     } catch (error) {
       console.error('Image picking error:', error);
@@ -157,6 +161,7 @@ export default function AddScreen() {
 
   const handleRemovePhoto = (index: number) => {
     setPhotos(prev => prev.filter((_, idx) => idx !== index));
+    setUploadError(null);
   };
 
   const handleMapPress = (e: any) => {
@@ -209,6 +214,7 @@ export default function AddScreen() {
 
     try {
       setSubmitting(true);
+      setUploadError(null);
       const uploadedUrls: string[] = [];
 
       // 1. Upload photos to Cloudinary if photos are selected
@@ -220,22 +226,11 @@ export default function AddScreen() {
             uploadedUrls.push(res.url);
           } else {
             console.log('Upload failed:', res.error);
-            // Fallback: If uploading fails (e.g. storage bucket not yet created or configured),
-            // we will use a premium public Unsplash photo so the app remains fully functional!
-            const fallbackHouseIds = [
-              '1564013799919-ab600027ffc6',
-              '1570129477492-45c003edd2be',
-              '1580587771525-78b9dba3b914',
-              '1600585154340-be6161a56a0c',
-              '1600596542815-ffad4c1539a9',
-              '1600607687939-ce8a6c25118c',
-              '1600566753190-17f0baa2a6c3',
-              '1512917774080-9991f1c4c750',
-              '1600585154526-990dced4db0d',
-              '1600210492486-724fe5c67fb0'
-            ];
-            const randomId = fallbackHouseIds[Math.floor(Math.random() * fallbackHouseIds.length)];
-            uploadedUrls.push(`https://images.unsplash.com/photo-${randomId}?auto=format&fit=crop&w=800&q=80`);
+            setUploadError('Photo upload failed. Please check your connection and try again.');
+            Alert.alert('Upload Error', 'Photo upload failed. Please check your connection and try again.');
+            setUploadingPhotos(false);
+            setSubmitting(false);
+            return;
           }
         }
         setUploadingPhotos(false);
@@ -456,16 +451,24 @@ export default function AddScreen() {
         </View>
 
         <View style={styles.mapContainer}>
-          <MapView
-            provider={PROVIDER_GOOGLE}
-            style={styles.miniMap}
-            region={mapRegion}
-            customMapStyle={DARK_MAP_STYLE}
-            onPress={handleMapPress}
-            onRegionChangeComplete={(reg) => setMapRegion(reg)}
-          >
-            <Marker coordinate={coordinate} pinColor="#BB86FC" />
-          </MapView>
+          {Platform.OS !== 'web' ? (
+            <MapView
+              provider={PROVIDER_GOOGLE}
+              style={styles.miniMap}
+              region={mapRegion}
+              customMapStyle={DARK_MAP_STYLE}
+              onPress={handleMapPress}
+              onRegionChangeComplete={(reg) => setMapRegion(reg)}
+            >
+              <Marker coordinate={coordinate} pinColor="#BB86FC" />
+            </MapView>
+          ) : (
+            <View style={[styles.miniMap, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E1E1E' }]}>
+              <MaterialCommunityIcons name="map-marker" size={40} color="#BB86FC" />
+              <Text style={{ color: '#888', marginTop: 8, fontSize: 12 }}>Map picker available on mobile</Text>
+              <Text style={{ color: '#555', marginTop: 4, fontSize: 11 }}>Lat: {coordinate.latitude.toFixed(4)}, Lng: {coordinate.longitude.toFixed(4)}</Text>
+            </View>
+          )}
           <View style={styles.mapOverlayHint}>
             <Text style={styles.mapHintText}>Tap map to move property pin</Text>
           </View>
@@ -511,6 +514,10 @@ export default function AddScreen() {
           />
           <Text style={styles.phoneHint}>Users will use this number to contact you on phone or WhatsApp.</Text>
         </View>
+
+        {uploadError && (
+          <Text style={styles.errorText}>{uploadError}</Text>
+        )}
 
         {/* Submit button */}
         <TouchableOpacity
@@ -793,5 +800,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 4,
+  },
+  errorText: {
+    color: '#CF6679',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+    fontWeight: 'bold',
   },
 });

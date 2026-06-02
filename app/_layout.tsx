@@ -1,7 +1,9 @@
+import '@/lib/polyfills';
+import { useEffect, useState } from 'react';
 import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Slot } from 'expo-router';
+import { Slot, useRouter, useSegments } from 'expo-router';
 
 const darkTheme = {
   ...MD3DarkTheme,
@@ -15,12 +17,45 @@ const darkTheme = {
   },
 };
 
+function RootLayoutNav() {
+  const { isLoggedIn, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const [routerReady, setRouterReady] = useState(false);
+
+  // Give the router a moment to be ready before attempting navigation
+  useEffect(() => {
+    const timer = setTimeout(() => setRouterReady(true), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (isLoading || !routerReady) return;
+
+    const inAuthGroup = segments[0] === 'auth';
+
+    try {
+      if (!isLoggedIn && !inAuthGroup) {
+        // Redirect to the sign-in page if not logged in
+        router.replace('/auth/login');
+      } else if (isLoggedIn && inAuthGroup) {
+        // Redirect to the tabs page if logged in
+        router.replace('/(tabs)');
+      }
+    } catch (e) {
+      console.warn('Router redirect failed:', e);
+    }
+  }, [isLoggedIn, isLoading, segments, routerReady]);
+
+  return <Slot />;
+}
+
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PaperProvider theme={darkTheme}>
         <AuthProvider>
-          <Slot />
+          <RootLayoutNav />
         </AuthProvider>
       </PaperProvider>
     </GestureHandlerRootView>

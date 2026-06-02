@@ -371,44 +371,36 @@ export default function MapScreen() {
       </View>
 
       {/* Map View */}
-      {Platform.OS !== 'web' ? (
-        <MapView
-          ref={mapRef}
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          initialRegion={DEFAULT_REGION}
-          customMapStyle={DARK_MAP_STYLE}
-          showsUserLocation
-          showsMyLocationButton={false}
-          onMapReady={() => {
-            setMapReady(true);
-            requestLocation();
-          }}
-        >
-          {filteredProperties.map((item) => {
-            const isSelected = selectedProperty?.id === item.id;
-            return (
-              <Marker
-                key={item.id}
-                coordinate={{ latitude: item.latitude, longitude: item.longitude }}
-                onPress={() => handleSelectProperty(item)}
-              >
-                <View style={[styles.markerBubble, isSelected && styles.markerBubbleSelected]}>
-                  <Text style={[styles.markerText, isSelected && styles.markerTextSelected]}>
-                    ₹{formatRent(item.rent)}
-                  </Text>
-                </View>
-              </Marker>
-            );
-          })}
-        </MapView>
-      ) : (
-        <View style={[styles.map, { justifyContent: 'center', alignItems: 'center' }]}>
-          <MaterialCommunityIcons name="map-outline" size={64} color="#3D3D3D" />
-          <Text style={{ color: '#888', marginTop: 12, fontSize: 16 }}>Map is available on mobile only</Text>
-          <Text style={{ color: '#555', marginTop: 4, fontSize: 13 }}>{filteredProperties.length} properties found</Text>
-        </View>
-      )}
+      <MapView
+        ref={mapRef}
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={DEFAULT_REGION}
+        customMapStyle={DARK_MAP_STYLE}
+        showsUserLocation
+        showsMyLocationButton={false}
+        onMapReady={() => {
+          setMapReady(true);
+          requestLocation();
+        }}
+      >
+        {filteredProperties.map((item) => {
+          const isSelected = selectedProperty?.id === item.id;
+          return (
+            <Marker
+              key={item.id}
+              coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+              onPress={() => handleSelectProperty(item)}
+            >
+              <View style={[styles.markerBubble, isSelected && styles.markerBubbleSelected]}>
+                <Text style={[styles.markerText, isSelected && styles.markerTextSelected]}>
+                  ₹{formatRent(item.rent)}
+                </Text>
+              </View>
+            </Marker>
+          );
+        })}
+      </MapView>
 
       {/* Re-center / Location Button */}
       <TouchableOpacity style={styles.locationButton} onPress={requestLocation}>

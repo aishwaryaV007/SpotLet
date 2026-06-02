@@ -451,7 +451,6 @@ export default function AddScreen() {
         </View>
 
         <View style={styles.mapContainer}>
-          {Platform.OS !== 'web' ? (
             <MapView
               provider={PROVIDER_GOOGLE}
               style={styles.miniMap}
@@ -462,13 +461,6 @@ export default function AddScreen() {
             >
               <Marker coordinate={coordinate} pinColor="#BB86FC" />
             </MapView>
-          ) : (
-            <View style={[styles.miniMap, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E1E1E' }]}>
-              <MaterialCommunityIcons name="map-marker" size={40} color="#BB86FC" />
-              <Text style={{ color: '#888', marginTop: 8, fontSize: 12 }}>Map picker available on mobile</Text>
-              <Text style={{ color: '#555', marginTop: 4, fontSize: 11 }}>Lat: {coordinate.latitude.toFixed(4)}, Lng: {coordinate.longitude.toFixed(4)}</Text>
-            </View>
-          )}
           <View style={styles.mapOverlayHint}>
             <Text style={styles.mapHintText}>Tap map to move property pin</Text>
           </View>

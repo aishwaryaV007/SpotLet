@@ -1,18 +1,68 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-    flowType: 'pkce',
-  },
-});
+let supabaseClient: any;
+
+if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+  try {
+    supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: AsyncStorage,
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false,
+        flowType: 'pkce',
+      },
+    });
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error);
+  }
+}
+
+if (!supabaseClient) {
+  console.warn(
+    'Supabase URL or Anon Key is missing. Please set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your environment.'
+  );
+
+  const errorMessage = 'Supabase client is not initialized due to missing environment variables.';
+  
+  // Create a recursive dummy proxy object to prevent crash-on-import and crash-on-usage errors
+  const createMockThenable = (): any => {
+    const mock: any = new Proxy(() => {}, {
+      get: (target: any, prop: string) => {
+        if (prop === 'then') {
+          return (resolve: any) => resolve({
+            data: { session: null, publicUrl: '', subscription: { unsubscribe: () => {} } },
+            error: new Error(errorMessage),
+            session: null
+          });
+        }
+        if (prop === 'data') {
+          return {
+            session: null,
+            publicUrl: '',
+            subscription: { unsubscribe: () => {} }
+          };
+        }
+        if (prop === 'error') {
+          return new Error(errorMessage);
+        }
+        return mock;
+      },
+      apply: (target: any, thisArg: any, argumentsList: any[]) => {
+        return mock;
+      }
+    });
+    return mock;
+  };
+
+  supabaseClient = createMockThenable();
+}
+
+export const supabase = supabaseClient as SupabaseClient;
 
 /**
  * Send OTP to phone number via Supabase Auth

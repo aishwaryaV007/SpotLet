@@ -12,6 +12,7 @@ import {
   Linking,
   ScrollView,
   Platform,
+  TextInput,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -327,6 +328,140 @@ export default function MapScreen() {
       </View>
     );
   }
+  // ─── WEB LAYOUT (split: list | map) ───
+  if (Platform.OS === 'web') {
+    return (
+      <View style={webMapStyles.container}>
+        {/* Left Panel: Property List */}
+        <View style={webMapStyles.leftPanel}>
+          {/* Search */}
+          <View style={webMapStyles.searchContainer}>
+            <View style={webMapStyles.searchBar}>
+              <MaterialCommunityIcons name="magnify" size={20} color="#888888" />
+              <TextInput
+                placeholder="Search by area or city..."
+                placeholderTextColor="#666666"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={webMapStyles.searchInput}
+              />
+            </View>
+          </View>
+
+          {/* Filters */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={webMapStyles.filtersScroll} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+            {renderFilterPill('All', selectedType, 'All', setSelectedType)}
+            {renderFilterPill('1BHK', selectedType, '1BHK', setSelectedType)}
+            {renderFilterPill('2BHK', selectedType, '2BHK', setSelectedType)}
+            {renderFilterPill('3BHK', selectedType, '3BHK', setSelectedType)}
+            {renderFilterPill('PG', selectedType, 'PG', setSelectedType)}
+            {renderFilterPill('Room', selectedType, 'Room', setSelectedType)}
+          </ScrollView>
+
+          {/* Property List */}
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={webMapStyles.propertyList}>
+            {loading ? (
+              <View style={webMapStyles.centered}>
+                <ActivityIndicator size="large" color="#BB86FC" />
+              </View>
+            ) : filteredProperties.length === 0 ? (
+              <View style={webMapStyles.centered}>
+                <MaterialCommunityIcons name="home-search-outline" size={48} color="#3D3D3D" />
+                <Text style={webMapStyles.emptyText}>No properties match filters</Text>
+              </View>
+            ) : (
+              filteredProperties.map((item) => {
+                const isSaved = savedIds.has(item.id);
+                const imgUrl = item.photos && item.photos.length > 0 ? item.photos[0] : FALLBACK_IMAGE;
+                const isActive = selectedProperty?.id === item.id;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    activeOpacity={0.9}
+                    onPress={() => handleSelectProperty(item)}
+                    style={[webMapStyles.card, isActive && webMapStyles.cardActive]}
+                  >
+                    <Image source={{ uri: imgUrl }} style={webMapStyles.cardImage} />
+                    <TouchableOpacity
+                      style={webMapStyles.cardHeart}
+                      onPress={() => handleSaveToggle(item.id)}
+                    >
+                      <MaterialCommunityIcons
+                        name={isSaved ? 'heart' : 'heart-outline'}
+                        size={18}
+                        color={isSaved ? '#CF6679' : '#FFFFFF'}
+                      />
+                    </TouchableOpacity>
+                    <View style={webMapStyles.cardInfo}>
+                      <Text style={webMapStyles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                      <Text style={webMapStyles.cardPrice}>₹{item.rent.toLocaleString('en-IN')}/mo</Text>
+                      <Text style={webMapStyles.cardAddress} numberOfLines={1}>{item.address}</Text>
+                      <View style={webMapStyles.cardBadges}>
+                        <View style={webMapStyles.badge}>
+                          <Text style={webMapStyles.badgeText}>{item.type}</Text>
+                        </View>
+                        <View style={webMapStyles.badge}>
+                          <Text style={webMapStyles.badgeText}>{item.furnished ? 'Furnished' : 'Unfurnished'}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Right Panel: Map */}
+        <View style={webMapStyles.rightPanel}>
+          <MapView
+            ref={mapRef}
+            provider={PROVIDER_GOOGLE}
+            style={{ flex: 1 }}
+            initialRegion={DEFAULT_REGION}
+            customMapStyle={DARK_MAP_STYLE}
+            showsUserLocation
+            showsMyLocationButton={false}
+            onMapReady={() => {
+              setMapReady(true);
+              requestLocation();
+            }}
+          >
+            {filteredProperties.map((item) => {
+              const isSelected = selectedProperty?.id === item.id;
+              return (
+                <Marker
+                  key={item.id}
+                  coordinate={{ latitude: item.latitude, longitude: item.longitude }}
+                  onPress={() => handleSelectProperty(item)}
+                >
+                  <View style={[styles.markerBubble, isSelected && styles.markerBubbleSelected]}>
+                    <Text style={[styles.markerText, isSelected && styles.markerTextSelected]}>
+                      ₹{formatRent(item.rent)}
+                    </Text>
+                  </View>
+                </Marker>
+              );
+            })}
+          </MapView>
+        </View>
+
+        {/* Property Details Modal */}
+        <PropertyDetailsModal
+          visible={showDetailModal}
+          property={selectedProperty}
+          onClose={() => setShowDetailModal(false)}
+          isSaved={selectedProperty ? savedIds.has(selectedProperty.id) : false}
+          onSaveToggle={handleSaveToggle}
+          onCall={handleCall}
+          onWhatsApp={handleWhatsApp}
+        />
+      </View>
+    );
+  }
+
+  // ─── MOBILE LAYOUT (unchanged) ───
 
   return (
     <View style={styles.container}>
@@ -776,5 +911,121 @@ const styles = StyleSheet.create({
     color: '#BBBBBB',
     marginTop: 12,
     fontSize: 14,
+  },
+});
+
+const webMapStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: '#121212',
+  },
+  leftPanel: {
+    width: 400,
+    borderRightWidth: 1,
+    borderRightColor: '#2D2D2D',
+    backgroundColor: '#121212',
+  },
+  searchContainer: {
+    padding: 16,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#2D2D2D',
+  },
+  searchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  filtersScroll: {
+    marginBottom: 8,
+  },
+  propertyList: {
+    padding: 12,
+    gap: 12,
+  },
+  centered: {
+    paddingVertical: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    color: '#888888',
+    fontSize: 14,
+    marginTop: 12,
+  },
+  card: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#2D2D2D',
+  },
+  cardActive: {
+    borderColor: '#BB86FC',
+    borderWidth: 2,
+  },
+  cardImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: '#2D2D2D',
+  },
+  cardHeart: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(18, 18, 18, 0.7)',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2,
+  },
+  cardInfo: {
+    padding: 12,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  cardPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#03DAC6',
+    marginBottom: 4,
+  },
+  cardAddress: {
+    fontSize: 12,
+    color: '#888888',
+    marginBottom: 8,
+  },
+  cardBadges: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  badge: {
+    backgroundColor: '#2D2D2D',
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 11,
+    color: '#BBBBBB',
+    fontWeight: '500',
+  },
+  rightPanel: {
+    flex: 1,
   },
 });

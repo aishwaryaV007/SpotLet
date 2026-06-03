@@ -317,8 +317,11 @@ export default function AddScreen() {
     );
   };
 
+  const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
+
   return (
-    <SafeAreaView style={styles.container}>
+    <Wrapper style={Platform.OS === 'web' ? webFormStyles.outerContainer : styles.container}>
+      <View style={Platform.OS === 'web' ? webFormStyles.innerContainer : { flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>List Your Property</Text>
@@ -529,7 +532,8 @@ export default function AddScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+      </View>
+    </Wrapper>
   );
 }
 
@@ -800,5 +804,18 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
     fontWeight: 'bold',
+  },
+});
+
+const webFormStyles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+    backgroundColor: '#121212',
+    alignItems: 'center',
+  },
+  innerContainer: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 720,
   },
 });

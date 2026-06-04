@@ -341,8 +341,8 @@ SpotLet/                                  # Project root
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/spotlet.git
-cd spotlet
+git clone https://github.com/aishwaryaV007/SpotLet.git
+cd SpotLet
 
 # 2. Install dependencies
 npm install

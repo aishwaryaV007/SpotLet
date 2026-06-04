@@ -176,14 +176,14 @@ export default function LoginScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="home-map-marker" size={64} color="#BB86FC" />
+            <MaterialCommunityIcons name="home-map-marker" size={56} color="#BB86FC" />
           </View>
           <Text style={styles.title}>SpotLet</Text>
           <Paragraph style={styles.subtitle}>Find Your Perfect Rental</Paragraph>
         </View>
 
-        {/* Auth Container */}
-        <View style={styles.authContainer}>
+        {/* Auth Container (Glass Card) */}
+        <View style={styles.card}>
           <Text style={styles.sectionTitle}>{otpSent ? 'Verify OTP' : 'Login'}</Text>
           <Paragraph style={styles.description}>
             {otpSent 
@@ -200,8 +200,18 @@ export default function LoginScreen() {
             mode="outlined"
             keyboardType="phone-pad"
             placeholder="+91 98765 43210"
-            left={<TextInput.Icon icon="phone" />}
+            left={<TextInput.Icon icon="phone" color="rgba(255, 255, 255, 0.6)" />}
+            textColor="#FFFFFF"
             disabled={otpSent || localLoading || googleLoading}
+            theme={{
+              colors: {
+                primary: '#BB86FC',
+                outline: 'rgba(255, 255, 255, 0.15)',
+                placeholder: 'rgba(255, 255, 255, 0.4)',
+                onSurfaceVariant: 'rgba(255, 255, 255, 0.5)',
+              },
+              roundness: 12,
+            }}
           />
 
           {otpSent && (
@@ -214,8 +224,18 @@ export default function LoginScreen() {
               keyboardType="number-pad"
               placeholder="123456"
               maxLength={6}
-              left={<TextInput.Icon icon="lock" />}
+              left={<TextInput.Icon icon="lock" color="rgba(255, 255, 255, 0.6)" />}
+              textColor="#FFFFFF"
               disabled={localLoading || googleLoading}
+              theme={{
+                colors: {
+                  primary: '#BB86FC',
+                  outline: 'rgba(255, 255, 255, 0.15)',
+                  placeholder: 'rgba(255, 255, 255, 0.4)',
+                  onSurfaceVariant: 'rgba(255, 255, 255, 0.5)',
+                },
+                roundness: 12,
+              }}
             />
           )}
 
@@ -232,8 +252,11 @@ export default function LoginScreen() {
               mode="contained"
               onPress={handleSendOTP}
               style={styles.button}
+              buttonColor="#FFFFFF"
+              textColor="#121212"
               disabled={localLoading || googleLoading || phone.replace(/\D/g, '').length < 10}
               loading={localLoading}
+              labelStyle={styles.buttonLabel}
             >
               Send OTP
             </Button>
@@ -243,8 +266,11 @@ export default function LoginScreen() {
                 mode="contained"
                 onPress={handleVerifyOTP}
                 style={styles.button}
+                buttonColor="#FFFFFF"
+                textColor="#121212"
                 disabled={localLoading || googleLoading || otp.length < 6}
                 loading={localLoading}
+                labelStyle={styles.buttonLabel}
               >
                 Verify & Login
               </Button>
@@ -255,6 +281,7 @@ export default function LoginScreen() {
                   setOtp('');
                 }}
                 style={styles.secondaryButton}
+                textColor="rgba(255, 255, 255, 0.8)"
                 disabled={localLoading || googleLoading}
               >
                 Change Phone Number
@@ -271,17 +298,21 @@ export default function LoginScreen() {
 
           {/* Google Sign-In Button */}
           <Button
-            mode="contained"
+            mode="outlined"
             onPress={handleGoogleSignIn}
             style={styles.googleButton}
             contentStyle={styles.googleButtonContent}
             disabled={localLoading || googleLoading}
             loading={googleLoading}
-            buttonColor="#FFFFFF"
-            textColor="#121212"
+            textColor="#FFFFFF"
             icon={({ size }) => (
-              <MaterialCommunityIcons name="google" size={size} color="#121212" />
+              <MaterialCommunityIcons name="google" size={size} color="#FFFFFF" />
             )}
+            theme={{
+              colors: {
+                outline: 'rgba(255, 255, 255, 0.2)',
+              }
+            }}
           >
             Continue with Google
           </Button>
@@ -293,7 +324,7 @@ export default function LoginScreen() {
 
         {/* Footer Info */}
         <View style={styles.infoContainer}>
-          <MaterialCommunityIcons name="lock" size={20} color="#03DAC6" />
+          <MaterialCommunityIcons name="shield-check" size={20} color="#03DAC6" />
           <Paragraph style={styles.infoText}>
             Your data is encrypted and secure
           </Paragraph>
@@ -306,52 +337,88 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#121212', // Pure black-gray background
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
-    marginBottom: 40,
+    marginBottom: 24,
+    marginTop: 20,
   },
   iconContainer: {
-    marginBottom: 16,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 4,
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#BB86FC',
+    fontSize: 15,
+    color: '#BB86FC', // Brand purple subtitle
+    letterSpacing: 0.5,
   },
-  authContainer: {
-    gap: 16,
+  card: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)', // Semi-transparent glass card on black background
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderRadius: 24,
+    padding: 28,
+    marginBottom: 24,
+    // Web only style
+    ...(Platform.OS === 'web' && {
+      backdropFilter: 'blur(20px)',
+      boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+    }),
+    // Mobile shadow style
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginBottom: 8,
+    marginBottom: 6,
+    textAlign: 'center',
   },
   description: {
     fontSize: 14,
-    color: '#BBBBBB',
-    marginBottom: 16,
+    color: 'rgba(255, 255, 255, 0.6)',
+    marginBottom: 24,
+    textAlign: 'center',
   },
   input: {
-    backgroundColor: '#1E1E1E',
-    marginBottom: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    marginBottom: 12,
   },
   button: {
     marginTop: 8,
+    borderRadius: 24,
     paddingVertical: 6,
+  },
+  buttonLabel: {
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   otpButtonGroup: {
     gap: 8,
@@ -360,24 +427,30 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   errorText: {
-    color: '#CF6679',
+    color: '#FF6B6B',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
+    marginBottom: 8,
   },
   termsText: {
-    fontSize: 12,
-    color: '#666666',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.4)',
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: 20,
+    lineHeight: 16,
   },
   infoContainer: {
     flexDirection: 'row',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: 'rgba(3, 218, 198, 0.06)',
+    borderWidth: 1,
+    borderColor: 'rgba(3, 218, 198, 0.12)',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
     gap: 8,
+    width: '100%',
+    maxWidth: 400,
   },
   infoText: {
     fontSize: 12,
@@ -387,24 +460,24 @@ const styles = StyleSheet.create({
   dividerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 16,
+    marginVertical: 20,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#333333',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
   },
   dividerText: {
-    color: '#888888',
+    color: 'rgba(255, 255, 255, 0.4)',
     marginHorizontal: 16,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   googleButton: {
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   googleButtonContent: {
     flexDirection: 'row',

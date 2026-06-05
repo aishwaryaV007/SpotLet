@@ -205,27 +205,48 @@ export default function AddScreen() {
 
   const handleSubmit = async () => {
     // Validate inputs
-    if (!title.trim()) return Alert.alert('Validation Error', 'Please enter a title.');
-    if (!rent.trim() || isNaN(Number(rent))) return Alert.alert('Validation Error', 'Please enter a valid monthly rent amount.');
-    if (!deposit.trim() || isNaN(Number(deposit))) return Alert.alert('Validation Error', 'Please enter a valid security deposit amount.');
-    if (!address.trim()) return Alert.alert('Validation Error', 'Please enter the property address.');
-    if (!phone.trim()) return Alert.alert('Validation Error', 'Please enter a contact phone number.');
-    if (!user) return Alert.alert('Authentication Error', 'You must be logged in to create a listing.');
+    console.log('handleSubmit called. Inputs:', { title, rent, deposit, address, phone, userId: user?.id });
+    if (!title.trim()) {
+      console.warn('Validation failed: empty title');
+      return Alert.alert('Validation Error', 'Please enter a title.');
+    }
+    if (!rent.trim() || isNaN(Number(rent))) {
+      console.warn('Validation failed: invalid rent:', rent);
+      return Alert.alert('Validation Error', 'Please enter a valid monthly rent amount.');
+    }
+    if (!deposit.trim() || isNaN(Number(deposit))) {
+      console.warn('Validation failed: invalid deposit:', deposit);
+      return Alert.alert('Validation Error', 'Please enter a valid security deposit amount.');
+    }
+    if (!address.trim()) {
+      console.warn('Validation failed: empty address');
+      return Alert.alert('Validation Error', 'Please enter the property address.');
+    }
+    if (!phone.trim()) {
+      console.warn('Validation failed: empty phone');
+      return Alert.alert('Validation Error', 'Please enter a contact phone number.');
+    }
+    if (!user) {
+      console.warn('Validation failed: no user logged in');
+      return Alert.alert('Authentication Error', 'You must be logged in to create a listing.');
+    }
 
     try {
+      console.log('All validations passed. Starting submission...');
       setSubmitting(true);
       setUploadError(null);
       const uploadedUrls: string[] = [];
 
       // 1. Upload photos to Cloudinary if photos are selected
       if (photos.length > 0) {
+        console.log('Photos to upload:', photos);
         setUploadingPhotos(true);
         for (const localUri of photos) {
           const res = await uploadToCloudinary(localUri);
           if (res.success && res.url) {
             uploadedUrls.push(res.url);
           } else {
-            console.log('Upload failed:', res.error);
+            console.error('Upload failed:', res.error);
             setUploadError('Photo upload failed. Please check your connection and try again.');
             Alert.alert('Upload Error', 'Photo upload failed. Please check your connection and try again.');
             setUploadingPhotos(false);
@@ -235,6 +256,7 @@ export default function AddScreen() {
         }
         setUploadingPhotos(false);
       } else {
+        console.log('No photos selected. Using fallback image.');
         // Fallback placeholder image if no photo is picked
         uploadedUrls.push('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80');
       }
@@ -257,7 +279,9 @@ export default function AddScreen() {
         available: true,
       };
 
+      console.log('Calling createProperty with data:', propertyData);
       const result = await createProperty(propertyData);
+      console.log('createProperty result:', result);
 
       if (result.success) {
         Alert.alert('Success', 'Your rental property has been listed!', [
@@ -282,9 +306,11 @@ export default function AddScreen() {
           },
         ]);
       } else {
+        console.error('createProperty returned success=false:', result.error);
         Alert.alert('Error', result.error || 'Failed to list property. Please try again.');
       }
     } catch (err: any) {
+      console.error('Unexpected error in handleSubmit:', err);
       Alert.alert('Error', err.message || 'An unexpected error occurred.');
     } finally {
       setSubmitting(false);

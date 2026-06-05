@@ -349,7 +349,7 @@ export default function MapScreen() {
           </View>
 
           {/* Filters */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={webMapStyles.filtersScroll} contentContainerStyle={{ paddingHorizontal: 16, gap: 6 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={webMapStyles.filtersScroll} contentContainerStyle={{ paddingHorizontal: 16, gap: 6, alignItems: 'center' }}>
             {renderFilterPill('All', selectedType, 'All', setSelectedType)}
             {renderFilterPill('1BHK', selectedType, '1BHK', setSelectedType)}
             {renderFilterPill('2BHK', selectedType, '2BHK', setSelectedType)}
@@ -359,7 +359,7 @@ export default function MapScreen() {
           </ScrollView>
 
           {/* Property List */}
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={webMapStyles.propertyList}>
+          <ScrollView style={webMapStyles.propertyListContainer} showsVerticalScrollIndicator={false} contentContainerStyle={webMapStyles.propertyList}>
             {loading ? (
               <View style={webMapStyles.centered}>
                 <ActivityIndicator size="large" color="#BB86FC" />
@@ -946,7 +946,13 @@ const webMapStyles = StyleSheet.create({
     marginLeft: 8,
   },
   filtersScroll: {
+    height: 48,
+    flexGrow: 0,
+    flexShrink: 0,
     marginBottom: 8,
+  },
+  propertyListContainer: {
+    flex: 1,
   },
   propertyList: {
     padding: 12,

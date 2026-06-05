@@ -4,6 +4,30 @@ import { MD3DarkTheme, PaperProvider } from 'react-native-paper';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Slot, useRouter, useSegments } from 'expo-router';
+import { Platform, Alert } from 'react-native';
+
+// Polyfill Alert.alert for React Native Web
+if (Platform.OS === 'web') {
+  Alert.alert = (title, message, buttons) => {
+    const msg = title ? `${title}: ${message}` : message;
+    if (buttons && buttons.length > 0) {
+      const result = window.confirm(msg);
+      if (result) {
+        const okButton = buttons.find(b => b.text && b.text.toLowerCase() !== 'cancel') || buttons[0];
+        if (okButton && okButton.onPress) {
+          okButton.onPress();
+        }
+      } else {
+        const cancelButton = buttons.find(b => b.text && b.text.toLowerCase() === 'cancel');
+        if (cancelButton && cancelButton.onPress) {
+          cancelButton.onPress();
+        }
+      }
+    } else {
+      window.alert(msg);
+    }
+  };
+}
 
 const darkTheme = {
   ...MD3DarkTheme,

@@ -276,6 +276,7 @@ export async function fetchProperties() {
  */
 export async function createProperty(property: any) {
   try {
+    console.log('supabase.ts: createProperty called with:', property);
     const { data, error } = await supabase
       .from('properties')
       .insert(property)
@@ -283,10 +284,13 @@ export async function createProperty(property: any) {
       .single();
 
     if (error) {
+      console.error('supabase.ts: insert failed with error:', error);
       return { success: false, error: error.message, data: null };
     }
+    console.log('supabase.ts: insert succeeded, returned data:', data);
     return { success: true, error: null, data };
   } catch (err: any) {
+    console.error('supabase.ts: insert threw exception:', err);
     return { success: false, error: err.message || 'Failed to create property', data: null };
   }
 }

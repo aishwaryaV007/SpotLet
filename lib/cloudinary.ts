@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /**
  * Upload an image to Cloudinary using their REST API
  * This is lightweight and requires no external native SDKs.
@@ -20,11 +22,19 @@ export async function uploadToCloudinary(uri: string): Promise<{ success: boolea
     const type = match ? `image/${match[1]}` : `image/jpeg`;
 
     const formData = new FormData();
-    formData.append('file', {
-      uri,
-      name: filename,
-      type,
-    } as any);
+    
+    if (Platform.OS === 'web') {
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      formData.append('file', blob, filename);
+    } else {
+      formData.append('file', {
+        uri,
+        name: filename,
+        type,
+      } as any);
+    }
+    
     formData.append('upload_preset', uploadPreset);
 
     const response = await fetch(
@@ -32,7 +42,7 @@ export async function uploadToCloudinary(uri: string): Promise<{ success: boolea
       {
         method: 'POST',
         body: formData,
-        headers: {
+        headers: Platform.OS === 'web' ? undefined : {
           'Content-Type': 'multipart/form-data',
         },
       }

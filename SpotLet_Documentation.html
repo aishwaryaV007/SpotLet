@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpotLet — Project Documentation</title>
+<style>
+  /* ========== FONTS ========== */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  /* ========== CSS VARIABLES ========== */
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161618;
+    --surface-2: #1c1c1f;
+    --surface-3: #232327;
+    --primary: #BB86FC;
+    --primary-dim: rgba(187, 134, 252, 0.12);
+    --secondary: #03DAC6;
+    --secondary-dim: rgba(3, 218, 198, 0.10);
+    --tertiary: #CF6679;
+    --tertiary-dim: rgba(207, 102, 121, 0.10);
+    --accent-blue: #82B1FF;
+    --accent-orange: #FFB74D;
+    --accent-green: #69F0AE;
+    --border: #2a2a2e;
+    --border-light: #3a3a3e;
+    --text: #EAEAEA;
+    --text-secondary: #9e9e9e;
+    --text-muted: #6a6a6a;
+    --code-bg: #1a1a1e;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  /* ========== RESET & BASE ========== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    font-size: 15px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ========== LAYOUT ========== */
+  .doc-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  /* ========== COVER PAGE ========== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 80px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(187,134,252,0.08) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(3,218,198,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .cover-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--primary), #9C27B0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 40px rgba(187,134,252,0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 0%, var(--primary) 50%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover .tagline {
+    font-size: 1.3rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    font-style: italic;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover .doc-type {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    color: var(--primary);
+    padding: 10px 28px;
+    border: 1px solid rgba(187,134,252,0.3);
+    border-radius: 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cover-meta {
+    position: relative;
+    z-index: 1;
+    margin-top: 60px;
+    display: flex;
+    gap: 40px;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+
+  .cover-meta span { display: flex; align-items: center; gap: 6px; }
+
+  /* ========== TABLE OF CONTENTS ========== */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    margin-bottom: 60px;
+    page-break-after: always;
+  }
+
+  .toc h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc ol {
+    list-style: none;
+    counter-reset: toc-counter;
+  }
+
+  .toc > ol > li {
+    counter-increment: toc-counter;
+    margin-bottom: 6px;
+  }
+
+  .toc > ol > li > a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+  }
+
+  .toc > ol > li > a:hover {
+    background: var(--primary-dim);
+    color: var(--primary);
+  }
+
+  .toc > ol > li > a::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    min-width: 28px;
+  }
+
+  /* ========== SECTIONS ========== */
+  section {
+    margin-bottom: 56px;
+    page-break-inside: avoid;
+  }
+
+  section > h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: #fff;
+    margin-bottom: 8px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  section > h2 .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+    background: var(--primary-dim);
+    padding: 4px 10px;
+    border-radius: 6px;
+  }
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--secondary);
+    margin-top: 32px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+    border-left: 3px solid var(--secondary);
+  }
+
+  h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin-top: 24px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    margin-bottom: 14px;
+    color: var(--text);
+    line-height: 1.75;
+  }
+
+  strong { color: #fff; font-weight: 600; }
+
+  /* ========== LISTS ========== */
+  ul, ol {
+    padding-left: 24px;
+    margin-bottom: 16px;
+  }
+
+  li {
+    margin-bottom: 6px;
+    line-height: 1.65;
+  }
+
+  li::marker { color: var(--primary); }
+
+  /* ========== CODE BLOCKS ========== */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    font-size: 0.82rem;
+    line-height: 1.65;
+    position: relative;
+  }
+
+  pre::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    background: var(--surface-3);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em;
+  }
+
+  :not(pre) > code {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--primary);
+    font-size: 0.82em;
+  }
+
+  /* Syntax highlighting classes */
+  .kw { color: #C792EA; }   /* keywords */
+  .fn { color: #82AAFF; }   /* functions */
+  .st { color: #C3E88D; }   /* strings */
+  .cm { color: #546E7A; }   /* comments */
+  .nu { color: #F78C6C; }   /* numbers */
+  .op { color: #89DDFF; }   /* operators */
+  .ty { color: #FFCB6B; }   /* types */
+  .at { color: #FF5370; }   /* attributes */
+  .vr { color: #EEFFFF; }   /* variables */
+
+  /* ========== TABLES ========== */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0 20px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  thead {
+    background: var(--surface-2);
+  }
+
+  th {
+    text-align: left;
+    padding: 14px 18px;
+    font-weight: 600;
+    color: var(--primary);
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+
+  /* ========== INFO BOXES ========== */
+  .info-box {
+    padding: 20px 24px;
+    border-radius: var(--radius-sm);
+    margin: 16px 0 20px;
+    border-left: 4px solid;
+    font-size: 0.9rem;
+  }
+
+  .info-box.purple {
+    background: var(--primary-dim);
+    border-color: var(--primary);
+  }
+
+  .info-box.teal {
+    background: var(--secondary-dim);
+    border-color: var(--secondary);
+  }
+
+  .info-box.rose {
+    background: var(--tertiary-dim);
+    border-color: var(--tertiary);
+  }
+
+  .info-box .box-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .info-box.purple .box-title { color: var(--primary); }
+  .info-box.teal .box-title { color: var(--secondary); }
+  .info-box.rose .box-title { color: var(--tertiary); }
+
+  /* ========== DIAGRAM BOXES ========== */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin: 20px 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+  }
+
+  /* ========== FEATURE CARDS ========== */
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin: 20px 0;
+  }
+
+  .feature-card h4 {
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .feature-card .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-purple { background: var(--primary-dim); color: var(--primary); }
+  .badge-teal { background: var(--secondary-dim); color: var(--secondary); }
+  .badge-rose { background: var(--tertiary-dim); color: var(--tertiary); }
+
+  /* ========== COLOR SWATCHES ========== */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 16px 0 20px;
+  }
+
+  .color-swatch {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .color-swatch .swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    flex-shrink: 0;
+  }
+
+  .color-swatch .color-info {
+    font-size: 0.82rem;
+  }
+
+  .color-swatch .color-name {
+    font-weight: 600;
+    color: #fff;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .color-swatch .color-hex {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+  }
+
+  /* ========== FLOW DIAGRAMS ========== */
+  .flow-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin: 16px 0 20px;
+    overflow-x: auto;
+  }
+
+  .flow-box pre {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+  }
+
+  /* ========== FOLDER TREE ========== */
+  .folder-tree {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 24px;
+    margin: 16px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+    color: var(--text-secondary);
+  }
+
+  .folder-tree .dir { color: var(--accent-blue); font-weight: 600; }
+  .folder-tree .file { color: var(--text-secondary); }
+  .folder-tree .desc { color: var(--text-muted); font-style: italic; }
+
+  /* ========== BADGE PILLS ========== */
+  .pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 16px;
+  }
+
+  .pill {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+
+  .pill-primary { color: var(--primary); border-color: rgba(187,134,252,0.3); background: var(--primary-dim); }
+  .pill-secondary { color: var(--secondary); border-color: rgba(3,218,198,0.3); background: var(--secondary-dim); }
+  .pill-tertiary { color: var(--tertiary); border-color: rgba(207,102,121,0.3); background: var(--tertiary-dim); }
+
+  /* ========== SEPARATOR ========== */
+  hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* ========== ER DIAGRAM (styled) ========== */
+  .er-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0;
+    margin: 8px 0;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: top;
+    min-width: 260px;
+  }
+
+  .er-table .er-header {
+    padding: 12px 18px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .er-table .er-row {
+    padding: 6px 18px;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .er-table .er-row:last-child { border-bottom: none; }
+
+  .er-tables-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+
+  /* ========== PAGE BREAKS FOR PRINT ========== */
+  .page-break { page-break-before: always; }
+
+  /* ========== FOOTER ========== */
+  .doc-footer {
+    text-align: center;
+    padding: 40px 0;
+    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  /* ========== PRINT STYLES ========== */
+  @media print {
+    :root {
+      --bg: #ffffff;
+      --surface: #f8f9fa;
+      --surface-2: #f0f1f3;
+      --surface-3: #e8eaed;
+      --primary: #6200EE;
+      --primary-dim: rgba(98, 0, 238, 0.06);
+      --secondary: #018786;
+      --secondary-dim: rgba(1, 135, 134, 0.06);
+      --tertiary: #B00020;
+      --tertiary-dim: rgba(176, 0, 32, 0.06);
+      --border: #dadce0;
+      --border-light: #c8ccd0;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --text-muted: #80868b;
+      --code-bg: #f1f3f4;
+    }
+
+    body {
+      background: #fff;
+      color: #202124;
+      font-size: 11pt;
+      line-height: 1.6;
+    }
+
+    .doc-wrapper { padding: 0; max-width: 100%; }
+
+    .cover {
+      min-height: auto;
+      padding: 80px 32px;
+      page-break-after: always;
+    }
+
+    .cover::before, .cover::after { display: none; }
+
+    .cover h1 {
+      background: none;
+      -webkit-text-fill-color: #202124;
+      color: #202124;
+      font-size: 2.8rem;
+    }
+
+    .cover .tagline { color: #5f6368; }
+
+    .cover .doc-type {
+      color: #6200EE;
+      border-color: #6200EE;
+    }
+
+    .cover-logo {
+      box-shadow: none;
+      background: #6200EE;
+    }
+
+    section { page-break-inside: avoid; }
+
+    pre {
+      font-size: 8pt;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .kw { color: #7B1FA2; }
+    .fn { color: #1565C0; }
+    .st { color: #2E7D32; }
+    .cm { color: #78909C; }
+    .nu { color: #E64A19; }
+    .op { color: #0097A7; }
+    .ty { color: #F57F17; }
+    .at { color: #C62828; }
+    .vr { color: #202124; }
+
+    section > h2 { border-bottom-color: #6200EE; }
+    section > h2 .sec-num { color: #6200EE; background: rgba(98,0,238,0.06); }
+    h3 { color: #018786; border-left-color: #018786; }
+    h4 { color: #1565C0; }
+    :not(pre) > code { color: #6200EE; }
+    li::marker { color: #6200EE; }
+
+    .color-swatch .swatch { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    .badge-purple, .badge-teal, .badge-rose,
+    .pill-primary, .pill-secondary, .pill-tertiary,
+    .info-box.purple, .info-box.teal, .info-box.rose,
+    thead, tr:nth-child(even) {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+
+    a { color: #1a73e8; text-decoration: none; }
+
+    .doc-footer { display: none; }
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm 18mm;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================== COVER PAGE ============================== -->
+<div class="cover">
+  <div class="cover-logo">S</div>
+  <h1>SpotLet</h1>
+  <p class="tagline">Spot it. Let it. Done.</p>
+  <div class="doc-type">Project Blueprint & Software Architecture Specification</div>
+  <div class="cover-meta">
+    <span>📄 Version 1.0</span>
+    <span>📅 June 2026</span>
+    <span>🏗️ Production-Grade Specification</span>
+  </div>
+</div>
+
+<div class="doc-wrapper">
+
+<!-- ============================== TABLE OF CONTENTS ============================== -->
+<nav class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Project Overview</a></li>
+    <li><a href="#s2">Product Vision</a></li>
+    <li><a href="#s3">Complete Feature Breakdown</a></li>
+    <li><a href="#s4">User Roles &amp; Permissions</a></li>
+    <li><a href="#s5">Complete Tech Stack</a></li>
+    <li><a href="#s6">Frontend Architecture</a></li>
+    <li><a href="#s7">Backend Architecture</a></li>
+    <li><a href="#s8">Database Design</a></li>
+    <li><a href="#s9">Authentication &amp; Security</a></li>
+    <li><a href="#s10">UI/UX Design System</a></li>
+    <li><a href="#s11">User Flow Diagrams</a></li>
+    <li><a href="#s12">API Documentation</a></li>
+    <li><a href="#s13">State Management Logic</a></li>
+    <li><a href="#s14">Performance Optimization</a></li>
+    <li><a href="#s15">DevOps &amp; Deployment</a></li>
+    <li><a href="#s16">Testing Strategy</a></li>
+    <li><a href="#s17">Known Issues &amp; Risks</a></li>
+    <li><a href="#s18">Future Roadmap</a></li>
+    <li><a href="#s19">AI Context Summary</a></li>
+  </ol>
+</nav>
+
+
+<!-- ============================== 1. PROJECT OVERVIEW ============================== -->
+<section id="s1">
+  <h2><span class="sec-num">01</span> Project Overview</h2>
+
+  <h3>1.1 Project Identity</h3>
+  <div class="pill-row">
+    <span class="pill pill-primary">SpotLet</span>
+    <span class="pill pill-secondary">Map-Centric</span>
+    <span class="pill pill-tertiary">Peer-to-Peer</span>
+  </div>
+  <p><strong>Tagline:</strong> <em>Spot it. Let it. Done.</em></p>
+
+  <h3>1.2 Project Purpose</h3>
+  <p>SpotLet is a map-centric, peer-to-peer rental discovery platform designed to eliminate the friction, high brokerage fees, and location inaccuracy that plague the Indian residential rental market. It serves as a direct bridge between property owners and house seekers.</p>
+
+  <h3>1.3 Target Users</h3>
+  <ul>
+    <li><strong>House Seekers (Migrants, Working Professionals, Students):</strong> Individuals moving to tier-1 (e.g., Bengaluru, Mumbai, NCR) and tier-2/3 cities in India who need to find, verify, and secure accommodations (rooms, PGs, apartments) quickly and without paying high broker fees.</li>
+    <li><strong>Property Owners / Landlords:</strong> Homeowners who want to list their residential properties directly, manage leads, and communicate with potential tenants without paying listing fees or dealing with intermediaries.</li>
+  </ul>
+
+  <h3>1.4 Real-World Problems Solved</h3>
+  <div class="feature-card">
+    <ol>
+      <li><strong>Exorbitant Brokerage Fees:</strong> Seekers are routinely forced to pay 1 to 2 months' rent as non-refundable brokerage fees.</li>
+      <li><strong>Opaque and Inaccurate Location Data:</strong> Existing listing websites display vague descriptions like "near metro station," which can turn out to be miles away. SpotLet enforces exact GPS pin placements on a map.</li>
+      <li><strong>Stale and Outdated Listings:</strong> Standard classified platforms are cluttered with listings that were rented months ago.</li>
+      <li><strong>Complex Onboarding Processes:</strong> Most rental portals require lengthy registration forms, passwords, and profile details. SpotLet uses passwordless SMS OTP login.</li>
+      <li><strong>Lack of Direct Communication Channels:</strong> Platforms often hide owner details behind paywalls. SpotLet offers single-tap deep links to call or message via WhatsApp directly.</li>
+    </ol>
+  </div>
+
+  <h3>1.5 Core Product Value Proposition</h3>
+  <ul>
+    <li><strong>Map-First Interface:</strong> Instantly display available spaces as clickable price bubbles on a premium dark map.</li>
+    <li><strong>Direct Contact:</strong> Direct communication via deep links (Phone, WhatsApp) with zero mediation.</li>
+    <li><strong>Zero Brokerage:</strong> Excludes middlemen from the leasing transaction.</li>
+    <li><strong>Frictionless Verification:</strong> SMS phone verification (E.164) that validates real identity in seconds.</li>
+    <li><strong>Easy Listing Flow:</strong> Drop a pin, type the address, select amenities, upload images, and publish in under 2 minutes.</li>
+  </ul>
+
+  <h3>1.6 Expected Final Outcome</h3>
+  <p>A high-performance, responsive cross-platform application (Web, Android, iOS) that allows users to spot available rentals immediately on a map, filter criteria dynamically, and initiate contact with the owner in a single interaction.</p>
+</section>
+
+
+<!-- ============================== 2. PRODUCT VISION ============================== -->
+<section id="s2" class="page-break">
+  <h2><span class="sec-num">02</span> Product Vision</h2>
+
+  <h3>2.1 Long-Term Vision</h3>
+  <p>To build the most trusted, map-native decentralized real estate network in India, expanding from residential rooms and PGs to commercial, co-working, and vacation rentals. The long-term goal is to make physical property hunting completely obsolete by combining highly precise spatial coordinates with verified owner documentation.</p>
+
+  <h3>2.2 Scalability Goals</h3>
+  <ul>
+    <li><strong>Spatial Indexing:</strong> Scaling to support millions of active listings with sub-second map cluster rendering.</li>
+    <li><strong>Concurrent Browsing:</strong> Supporting hundreds of thousands of concurrent map search requests using spatial databases (PostGIS).</li>
+    <li><strong>Distributed Media Storage:</strong> Optimizing photo uploads using edge-accelerated CDN resizing.</li>
+  </ul>
+
+  <h3>2.3 Monetization Models</h3>
+  <div class="feature-card">
+    <ol>
+      <li><strong>Landlord Premium Visibility:</strong> Paid features to highlight listings or pin them at the top of searches in high-demand zones.</li>
+      <li><strong>Tenant Screening &amp; Verification SaaS:</strong> Offering automated background checks, Aadhaar integration, and tenant rating services for a nominal fee.</li>
+      <li><strong>Rental Agreement &amp; Digital Escrow:</strong> Monetizing secure in-app lease agreements and rental deposit escrows with transaction processing fees.</li>
+      <li><strong>Property Management Tools:</strong> A subscription service for landlords with multiple units to track rent collections, issues, and tenancy cycles.</li>
+    </ol>
+  </div>
+
+  <h3>2.4 Competitive Advantage</h3>
+  <p>SpotLet differentiates itself from competitors (like NoBroker, MagicBricks, Housing.com) by:</p>
+  <ul>
+    <li>Prioritizing map interactions over lists.</li>
+    <li>Retaining a strictly dark-themed, premium interface that eliminates visual clutter.</li>
+    <li>Minimizing onboarding barriers with passwordless OTP.</li>
+    <li>Providing a dedicated web experience using an iframe Leaflet map fallback, avoiding React Native map compilation failures on web.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 3. COMPLETE FEATURE BREAKDOWN ============================== -->
+<section id="s3" class="page-break">
+  <h2><span class="sec-num">03</span> Complete Feature Breakdown</h2>
+
+  <!-- Feature 3.1 -->
+  <div class="feature-card">
+    <h4>Phone OTP Authentication <span class="badge badge-purple">Core</span></h4>
+    <p><strong>Purpose:</strong> Frictionless, passwordless registration and login.</p>
+    <p><strong>User Flow:</strong> User enters phone number → Receives 6-digit verification code → Enters code → Session starts.</p>
+    <ul>
+      <li><strong>Frontend:</strong> Validates input structure using E.164 format. Displays countdown timers and error dialogs for incorrect inputs.</li>
+      <li><strong>Backend:</strong> Triggers <code>supabase.auth.signInWithOtp</code> sending an SMS code to the client.</li>
+      <li><strong>Database:</strong> Creates a record in <code>auth.users</code> on successful validation.</li>
+      <li><strong>Validation:</strong> Phone number must be exactly 10 digits (excluding country code), formatted to E.164 (e.g., <code>+91XXXXXXXXXX</code>).</li>
+      <li><strong>Error Handling:</strong> Catches rate-limiting errors (1 req/min) and incorrect verification code errors.</li>
+      <li><strong>Security:</strong> Employs Supabase's built-in SMS verification security controls.</li>
+    </ul>
+  </div>
+
+  <!-- Feature 3.2 -->
+  <div class="feature-card">
+    <h4>Home Feed with Search &amp; Filters <span class="badge badge-teal">Discovery</span></h4>
+    <p><strong>Purpose:</strong> Discovery of properties via scrollable feeds, keyword search, and filters.</p>
+    <p><strong>User Flow:</strong> User lands on feed → Scrolls through cards → Enters keyword or adjusts filters → Feed updates immediately.</p>
+    <ul>
+      <li><strong>Frontend:</strong> Instant client-side list filtering utilizing React state effects. Pull-to-refresh resets local list.</li>
+      <li><strong>Backend:</strong> Fetches all available records from <code>properties</code> table, sorted by date.</li>
+      <li><strong>Database:</strong> <code>SELECT * FROM properties WHERE available = true ORDER BY created_at DESC</code></li>
+      <li><strong>Validation:</strong> Chained filters evaluate: <code>type</code>, <code>furnished</code>, <code>for_whom</code>, and query matches on <code>title</code>, <code>address</code>, <code>description</code>.</li>
+      <li><strong>Error Handling:</strong> Displays network error states with connection retries if fetch fails.</li>
+      <li><strong>Security:</strong> SQL data exposure restricted to rows marked <code>available = true</code>.</li>
+    </ul>
+  </div>
+
+  <!-- Feature 3.3 -->
+  <div class="feature-card">
+    <h4>Live Map Discovery <span class="badge badge-teal">Discovery</span></h4>
+    <p><strong>Purpose:</strong> Visual exploration of properties near user's coordinate.</p>
+    <p><strong>User Flow:</strong> User selects Map → Map zooms to current location → Click bubbles to highlight details in carousel → Tap details.</p>
+    <ul>
+      <li><strong>Frontend (Mobile):</strong> Uses <code>react-native-maps</code> with native Google Maps.</li>
+      <li><strong>Frontend (Web):</strong> Uses an embedded <code>iframe</code> containing Leaflet and CartoDB Dark Matter tiles.</li>
+      <li><strong>Backend:</strong> Syncs active markers from database coordinate data.</li>
+      <li><strong>Database:</strong> Fetches <code>latitude</code>, <code>longitude</code>, <code>rent</code>, <code>id</code> from <code>properties</code>.</li>
+      <li><strong>Error Handling:</strong> Handles location permission denials by centering map on Koramangala, Bengaluru.</li>
+      <li><strong>Security:</strong> User coordinates are processed locally and not saved to database tables.</li>
+    </ul>
+  </div>
+
+  <!-- Feature 3.4 -->
+  <div class="feature-card">
+    <h4>Property Creation Form <span class="badge badge-rose">Owner</span></h4>
+    <p><strong>Purpose:</strong> Enables landlords to submit property details.</p>
+    <p><strong>User Flow:</strong> User inputs details → Drags map pin for coordinates → Picks and uploads photos → Clicks submit → Success redirect.</p>
+    <ul>
+      <li><strong>Frontend:</strong> Address text geocoding (1.5s debounce). Interactive mini-map pin. Uploads to Cloudinary via REST API.</li>
+      <li><strong>Backend:</strong> Inserts record with user's ID as <code>owner_id</code>.</li>
+      <li><strong>Database:</strong> SQL <code>INSERT</code> into the <code>properties</code> table.</li>
+      <li><strong>Validation:</strong> Rent and deposit must be numeric; title, address, phone numbers are required.</li>
+      <li><strong>Error Handling:</strong> Rollbacks on failure. Fallback to Unsplash photo placeholders if upload fails.</li>
+      <li><strong>Security:</strong> Requires active session token. Enforces user ownership constraints.</li>
+    </ul>
+  </div>
+
+  <!-- Feature 3.5 -->
+  <div class="feature-card">
+    <h4>Bookmarking (Save / Unsave) <span class="badge badge-purple">Engagement</span></h4>
+    <p><strong>Purpose:</strong> Persists selected listings for future retrieval.</p>
+    <p><strong>User Flow:</strong> User clicks heart icon → Heart turns red → Property saved → Viewable in "Saved" tab.</p>
+    <ul>
+      <li><strong>Frontend:</strong> Optimistic UI updates: immediately changes heart state locally, reverting on backend failure.</li>
+      <li><strong>Backend:</strong> Adds or removes records in the join table.</li>
+      <li><strong>Database:</strong> <code>INSERT</code> or <code>DELETE</code> on <code>saved_properties</code> table.</li>
+      <li><strong>Validation:</strong> Authenticated users only. Uniqueness constraint <code>UNIQUE (user_id, property_id)</code>.</li>
+      <li><strong>Error Handling:</strong> Shows alerts on failures, restoring local heart state.</li>
+      <li><strong>Security:</strong> RLS policies prevent viewing or modifying other users' bookmarks.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ============================== 4. USER ROLES & PERMISSIONS ============================== -->
+<section id="s4" class="page-break">
+  <h2><span class="sec-num">04</span> User Roles &amp; Permissions</h2>
+
+  <h3>4.1 User Types</h3>
+  <div class="feature-card">
+    <h4>Seeker (Guest / Authenticated)</h4>
+    <ul>
+      <li><strong>Guest:</strong> Can browse feed, map, and open details modal. Cannot save properties, post listings, or view profiles.</li>
+      <li><strong>Authenticated:</strong> Can search, view exact location pins, save properties, and initiate WhatsApp/Call links.</li>
+    </ul>
+  </div>
+  <div class="feature-card">
+    <h4>Owner (Authenticated Landlord)</h4>
+    <ul>
+      <li>Has all Seeker permissions.</li>
+      <li>Can create listings, upload media, and manage their posted properties.</li>
+    </ul>
+  </div>
+  <div class="feature-card">
+    <h4>Administrator (Planned)</h4>
+    <ul>
+      <li>Full bypass read/write rights.</li>
+      <li>Access to admin portals for listing moderation, reports, and spam flags.</li>
+    </ul>
+  </div>
+
+  <h3>4.2 Route Protection Matrix</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Route</th>
+          <th>Role Requirements</th>
+          <th>Behavior on Failure</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/(tabs)/index</code></td><td>Anonymous / Authenticated</td><td>None (Public Search)</td></tr>
+        <tr><td><code>/(tabs)/map</code></td><td>Anonymous / Authenticated</td><td>None (Public Discover)</td></tr>
+        <tr><td><code>/(tabs)/add</code></td><td>Authenticated (<code>user_id</code> required)</td><td>Redirects to <code>/auth/login</code></td></tr>
+        <tr><td><code>/(tabs)/saved</code></td><td>Authenticated (<code>user_id</code> required)</td><td>Renders "Sign In Required" fallback</td></tr>
+        <tr><td><code>/(tabs)/profile</code></td><td>Authenticated (<code>user_id</code> required)</td><td>Redirects to <code>/auth/login</code></td></tr>
+        <tr><td><code>/auth/*</code></td><td>Anonymous Only</td><td>Redirects to <code>/(tabs)</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4.3 Session Management</h3>
+  <ul>
+    <li><strong>Storage Provider:</strong> Native mobile uses <code>@react-native-async-storage/async-storage</code>. Web uses <code>localStorage</code>.</li>
+    <li><strong>Token Refresh:</strong> Automated via Supabase SDK's listener <code>onAuthStateChange</code>.</li>
+    <li><strong>Flow Type:</strong> PKCE (Authorization Code Exchange) to protect token leakage.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 5. COMPLETE TECH STACK ============================== -->
+<section id="s5" class="page-break">
+  <h2><span class="sec-num">05</span> Complete Tech Stack</h2>
+
+  <h3>Frontend Core</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>React</td><td>19.1.0</td><td>UI rendering engine</td></tr>
+        <tr><td>React Native</td><td>0.81.5</td><td>Cross-platform native bridge</td></tr>
+        <tr><td>React DOM</td><td>19.1.0</td><td>Web rendering target</td></tr>
+        <tr><td>Expo SDK</td><td>~54.0.35</td><td>Cross-platform framework</td></tr>
+        <tr><td>Expo Router</td><td>~6.0.24</td><td>File-based navigation</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>UI &amp; Native Libraries</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Library</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>React Native Paper</td><td>^5.11.0</td><td>Material Design 3 component library</td></tr>
+        <tr><td>React Native Maps</td><td>1.20.1</td><td>Google Maps SDK (mobile only)</td></tr>
+        <tr><td>Expo Image Picker</td><td>~17.0.11</td><td>Media gallery access</td></tr>
+        <tr><td>Expo Location</td><td>~19.0.8</td><td>GPS coordinate access</td></tr>
+        <tr><td>React Native Reanimated</td><td>~4.1.1</td><td>Animations engine</td></tr>
+        <tr><td>Leaflet</td><td>1.9.4</td><td>Web map fallback (iframe)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Backend &amp; Infrastructure</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Service</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td>Supabase (PostgreSQL)</td><td>15.x</td><td>Database, Auth, PostgREST API</td></tr>
+        <tr><td>@supabase/supabase-js</td><td>^2.44.0</td><td>Client SDK</td></tr>
+        <tr><td>Cloudinary REST API</td><td>v1_1</td><td>Media CDN &amp; image uploads</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>5.1 Technology Rationale</h3>
+  <ul>
+    <li><strong>Expo / React Native:</strong> Single cross-platform codebase for iOS, Android, and Web with native performance.</li>
+    <li><strong>Supabase:</strong> PostgreSQL, RLS security, and JWT-based Phone SMS OTP out of the box.</li>
+    <li><strong>React Native Paper:</strong> Enforces Material Design 3 guidelines for consistent styling.</li>
+    <li><strong>Cloudinary REST API:</strong> Lightweight REST interface without heavy native SDK bindings.</li>
+    <li><strong>Leaflet.js Web Fallback:</strong> Prevents app bundler crashes on web by bypassing Google Maps native compilation.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 6. FRONTEND ARCHITECTURE ============================== -->
+<section id="s6" class="page-break">
+  <h2><span class="sec-num">06</span> Frontend Architecture</h2>
+
+  <h3>6.1 Folder Structure</h3>
+  <div class="folder-tree"><span class="dir">SpotLet/</span>
+├── <span class="dir">app/</span>                                  <span class="desc"># Expo Router file-based directory</span>
+│   ├── <span class="file">_layout.tsx</span>                       <span class="desc"># Root wrapper: Providers & Global Routing</span>
+│   ├── <span class="file">index.tsx</span>                         <span class="desc"># Landing Auth Guard</span>
+│   ├── <span class="dir">(tabs)/</span>                           <span class="desc"># Authenticated Router Zone</span>
+│   │   ├── <span class="file">_layout.tsx</span>                   <span class="desc"># Platform-aware Tab navigator</span>
+│   │   ├── <span class="file">index.tsx</span>                     <span class="desc"># Home Feed</span>
+│   │   ├── <span class="file">map.tsx</span>                       <span class="desc"># Live Map</span>
+│   │   ├── <span class="file">add.tsx</span>                       <span class="desc"># Add Property Listing Form</span>
+│   │   ├── <span class="file">saved.tsx</span>                     <span class="desc"># Saved/Bookmarked Listings</span>
+│   │   └── <span class="file">profile.tsx</span>                   <span class="desc"># User Profile</span>
+│   └── <span class="dir">auth/</span>                             <span class="desc"># Guest Router Zone</span>
+│       ├── <span class="file">_layout.tsx</span>                   <span class="desc"># Auth slot layout</span>
+│       ├── <span class="file">index.tsx</span>                     <span class="desc"># Redirects to login</span>
+│       └── <span class="file">login.tsx</span>                     <span class="desc"># Phone Input & OTP screen</span>
+├── <span class="dir">assets/</span>                               <span class="desc"># Adaptive Icons, Splashes, Favicons</span>
+├── <span class="dir">components/</span>                           <span class="desc"># Shared Components</span>
+│   ├── <span class="file">CustomMap.tsx</span>                     <span class="desc"># Native maps wrapper (mobile)</span>
+│   ├── <span class="file">CustomMap.web.tsx</span>                 <span class="desc"># Leaflet iframe wrapper (web)</span>
+│   └── <span class="file">PropertyDetailsModal.tsx</span>          <span class="desc"># Property details sheet/modal</span>
+├── <span class="dir">contexts/</span>
+│   └── <span class="file">AuthContext.tsx</span>                   <span class="desc"># Session management provider</span>
+├── <span class="dir">lib/</span>
+│   ├── <span class="file">supabase.ts</span>                       <span class="desc"># Supabase init & DB helpers</span>
+│   ├── <span class="file">cloudinary.ts</span>                     <span class="desc"># Cloudinary REST API helper</span>
+│   └── <span class="file">polyfills.ts</span>                      <span class="desc"># Hermes DOMException polyfills</span>
+├── <span class="dir">types/</span>                                <span class="desc"># TypeScript Interfaces</span>
+│   ├── <span class="file">auth.ts</span>                           <span class="desc"># Auth and Session structures</span>
+│   └── <span class="file">property.ts</span>                       <span class="desc"># Property models</span>
+└── <span class="file">app.config.js</span>                         <span class="desc"># Dynamic Expo configuration</span></div>
+
+  <h3>6.2 Routing &amp; Navigation</h3>
+  <ul>
+    <li><strong>Router Engine:</strong> Expo Router (file-based navigation).</li>
+    <li><strong>Mobile:</strong> Native bottom navigation bar with icons (<em>Home, Map, Add, Saved, Profile</em>).</li>
+    <li><strong>Web:</strong> Responsive top navigation header bar (<code>WebTopNav</code>) rendering pages within a <code>Slot</code> view.</li>
+  </ul>
+
+  <h4>Auth Guard Logic</h4>
+  <pre data-lang="TypeScript"><code><span class="kw">const</span> <span class="vr">inAuthGroup</span> <span class="op">=</span> <span class="vr">segments</span>[<span class="nu">0</span>] <span class="op">===</span> <span class="st">'auth'</span>;
+<span class="kw">if</span> (<span class="op">!</span><span class="vr">isLoggedIn</span> <span class="op">&&</span> <span class="op">!</span><span class="vr">inAuthGroup</span>) {
+  <span class="vr">router</span>.<span class="fn">replace</span>(<span class="st">'/auth/login'</span>);
+} <span class="kw">else if</span> (<span class="vr">isLoggedIn</span> <span class="op">&&</span> <span class="vr">inAuthGroup</span>) {
+  <span class="vr">router</span>.<span class="fn">replace</span>(<span class="st">'/(tabs)'</span>);
+}</code></pre>
+
+  <h3>6.3 Platform-Specific Components (The Web Map Hack)</h3>
+  <div class="info-box purple">
+    <div class="box-title">Design Decision</div>
+    <p>To support both Google Maps on native mobile and interactive maps on web without compilation crashes, SpotLet uses extension resolver files:</p>
+    <ul>
+      <li><code>CustomMap.tsx</code> resolves on iOS/Android — imports and exports <code>react-native-maps</code>.</li>
+      <li><code>CustomMap.web.tsx</code> resolves on Web — mounts a native HTML <code>iframe</code> rendering a Leaflet Map with CartoDB Dark tiles. Coordinates are synced via <code>window.postMessage</code>.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ============================== 7. BACKEND ARCHITECTURE ============================== -->
+<section id="s7" class="page-break">
+  <h2><span class="sec-num">07</span> Backend Architecture</h2>
+
+  <div class="diagram">┌──────────────────────────────────────────────────────────────┐
+│                      SpotLet Backend (SaaS)                  │
+├──────────────────────────────┬───────────────────────────────┤
+│        Auth System           │        Storage Bucket         │
+│     (Supabase Auth SMS)      │      (property-photos)        │
+├──────────────────────────────┼───────────────────────────────┤
+│       PostgREST Engine       │      Cloudinary Gateway       │
+│  (Auto-generated DB APIs)    │      (Unsigned API Rest)      │
+└──────────────────────────────┴───────────────────────────────┘</div>
+
+  <h3>7.1 Database Interface</h3>
+  <p>Database interactions are handled via Supabase's auto-generated PostgREST interface. There is <strong>no custom API backend server</strong>. CRUD operations map directly to table commands through <code>lib/supabase.ts</code>.</p>
+
+  <h3>7.2 Storage Architecture</h3>
+  <ul>
+    <li><strong>Cloudinary REST Uploads:</strong> Clients upload picked media directly to Cloudinary using an unsigned upload preset (<code>spotlet_upload</code>). Cloudinary serves media over its global CDN.</li>
+    <li><strong>Supabase Storage Fallback:</strong> <code>uploadPropertyImage</code> is defined to upload images directly to Supabase's <code>property-photos</code> storage bucket when native storage integrations are required.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 8. DATABASE DESIGN ============================== -->
+<section id="s8" class="page-break">
+  <h2><span class="sec-num">08</span> Database Design</h2>
+
+  <h3>Entity Relationship Diagram</h3>
+
+  <div class="er-tables-grid">
+    <div class="er-table">
+      <div class="er-header" style="color: var(--primary);">👤 users</div>
+      <div class="er-row"><span><span style="color:var(--accent-orange)">PK</span> id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span>phone</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>name</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>avatar_url</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>created_at</span><span style="color:var(--text-muted)">timestamptz</span></div>
+      <div class="er-row"><span>updated_at</span><span style="color:var(--text-muted)">timestamptz</span></div>
+    </div>
+
+    <div class="er-table">
+      <div class="er-header" style="color: var(--secondary);">🏠 properties</div>
+      <div class="er-row"><span><span style="color:var(--accent-orange)">PK</span> id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span><span style="color:var(--accent-blue)">FK</span> owner_id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span>title</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>description</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>rent</span><span style="color:var(--text-muted)">numeric</span></div>
+      <div class="er-row"><span>deposit</span><span style="color:var(--text-muted)">numeric</span></div>
+      <div class="er-row"><span>type</span><span style="color:var(--text-muted)">text (enum)</span></div>
+      <div class="er-row"><span>furnished</span><span style="color:var(--text-muted)">boolean</span></div>
+      <div class="er-row"><span>for_whom</span><span style="color:var(--text-muted)">text (enum)</span></div>
+      <div class="er-row"><span>latitude</span><span style="color:var(--text-muted)">double</span></div>
+      <div class="er-row"><span>longitude</span><span style="color:var(--text-muted)">double</span></div>
+      <div class="er-row"><span>address</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>photos</span><span style="color:var(--text-muted)">text[]</span></div>
+      <div class="er-row"><span>owner_phone</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>owner_name</span><span style="color:var(--text-muted)">text</span></div>
+      <div class="er-row"><span>amenities</span><span style="color:var(--text-muted)">text[]</span></div>
+      <div class="er-row"><span>available</span><span style="color:var(--text-muted)">boolean</span></div>
+      <div class="er-row"><span>created_at</span><span style="color:var(--text-muted)">timestamptz</span></div>
+    </div>
+
+    <div class="er-table">
+      <div class="er-header" style="color: var(--tertiary);">❤️ saved_properties</div>
+      <div class="er-row"><span><span style="color:var(--accent-orange)">PK</span> id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span><span style="color:var(--accent-blue)">FK</span> user_id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span><span style="color:var(--accent-blue)">FK</span> property_id</span><span style="color:var(--text-muted)">uuid</span></div>
+      <div class="er-row"><span>saved_at</span><span style="color:var(--text-muted)">timestamptz</span></div>
+    </div>
+  </div>
+
+  <p><strong>Relationships:</strong> <code>users</code> ⟶ <em>owns</em> ⟶ <code>properties</code> &nbsp;|&nbsp; <code>users</code> ⟶ <em>saves</em> ⟶ <code>saved_properties</code> &nbsp;|&nbsp; <code>properties</code> ⟶ <em>saved_by</em> ⟶ <code>saved_properties</code></p>
+
+  <h3>8.1 SQL Schema</h3>
+
+  <h4>Users Table</h4>
+  <pre data-lang="SQL"><code><span class="cm">-- Create custom profiles table</span>
+<span class="kw">CREATE TABLE</span> <span class="ty">public</span>.<span class="ty">users</span> (
+  <span class="vr">id</span>         <span class="ty">uuid</span> <span class="kw">REFERENCES</span> <span class="ty">auth</span>.<span class="ty">users</span>(<span class="vr">id</span>) <span class="kw">ON DELETE CASCADE</span> <span class="kw">PRIMARY KEY</span>,
+  <span class="vr">phone</span>      <span class="ty">text</span>,
+  <span class="vr">name</span>       <span class="ty">text</span>,
+  <span class="vr">avatar_url</span> <span class="ty">text</span>,
+  <span class="vr">created_at</span> <span class="ty">timestamptz</span> <span class="kw">DEFAULT</span> <span class="fn">now</span>(),
+  <span class="vr">updated_at</span> <span class="ty">timestamptz</span> <span class="kw">DEFAULT</span> <span class="fn">now</span>()
+);</code></pre>
+
+  <h4>Properties Table</h4>
+  <pre data-lang="SQL"><code><span class="cm">-- Create properties table</span>
+<span class="kw">CREATE TABLE</span> <span class="ty">public</span>.<span class="ty">properties</span> (
+  <span class="vr">id</span>          <span class="ty">uuid</span> <span class="kw">DEFAULT</span> <span class="fn">gen_random_uuid</span>() <span class="kw">PRIMARY KEY</span>,
+  <span class="vr">owner_id</span>    <span class="ty">uuid</span> <span class="kw">REFERENCES</span> <span class="ty">auth</span>.<span class="ty">users</span>(<span class="vr">id</span>) <span class="kw">ON DELETE CASCADE NOT NULL</span>,
+  <span class="vr">title</span>       <span class="ty">text</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">description</span> <span class="ty">text</span>,
+  <span class="vr">rent</span>        <span class="ty">numeric</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">deposit</span>     <span class="ty">numeric</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">type</span>        <span class="ty">text</span> <span class="kw">NOT NULL CHECK</span> (<span class="vr">type</span> <span class="kw">IN</span> (<span class="st">'1BHK'</span>, <span class="st">'2BHK'</span>, <span class="st">'3BHK'</span>, <span class="st">'PG'</span>, <span class="st">'Room'</span>, <span class="st">'Independent House'</span>)),
+  <span class="vr">furnished</span>   <span class="ty">boolean</span> <span class="kw">DEFAULT</span> <span class="nu">false</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">for_whom</span>    <span class="ty">text</span> <span class="kw">NOT NULL CHECK</span> (<span class="vr">for_whom</span> <span class="kw">IN</span> (<span class="st">'Family'</span>, <span class="st">'Bachelor'</span>, <span class="st">'Any'</span>)),
+  <span class="vr">latitude</span>    <span class="ty">double precision</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">longitude</span>   <span class="ty">double precision</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">address</span>     <span class="ty">text</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">photos</span>      <span class="ty">text[]</span> <span class="kw">DEFAULT</span> <span class="st">'{}'</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">owner_phone</span> <span class="ty">text</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">owner_name</span>  <span class="ty">text</span>,
+  <span class="vr">amenities</span>   <span class="ty">text[]</span>,
+  <span class="vr">available</span>   <span class="ty">boolean</span> <span class="kw">DEFAULT</span> <span class="nu">true</span> <span class="kw">NOT NULL</span>,
+  <span class="vr">created_at</span>  <span class="ty">timestamptz</span> <span class="kw">DEFAULT</span> <span class="fn">now</span>() <span class="kw">NOT NULL</span>
+);</code></pre>
+
+  <h4>Saved Properties Table</h4>
+  <pre data-lang="SQL"><code><span class="cm">-- Create saved properties join table</span>
+<span class="kw">CREATE TABLE</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> (
+  <span class="vr">id</span>          <span class="ty">uuid</span> <span class="kw">DEFAULT</span> <span class="fn">gen_random_uuid</span>() <span class="kw">PRIMARY KEY</span>,
+  <span class="vr">user_id</span>     <span class="ty">uuid</span> <span class="kw">REFERENCES</span> <span class="ty">auth</span>.<span class="ty">users</span>(<span class="vr">id</span>) <span class="kw">ON DELETE CASCADE NOT NULL</span>,
+  <span class="vr">property_id</span> <span class="ty">uuid</span> <span class="kw">REFERENCES</span> <span class="ty">public</span>.<span class="ty">properties</span>(<span class="vr">id</span>) <span class="kw">ON DELETE CASCADE NOT NULL</span>,
+  <span class="vr">saved_at</span>    <span class="ty">timestamptz</span> <span class="kw">DEFAULT</span> <span class="fn">now</span>() <span class="kw">NOT NULL</span>,
+  <span class="kw">UNIQUE</span> (<span class="vr">user_id</span>, <span class="vr">property_id</span>)
+);</code></pre>
+
+  <h3>8.2 Row Level Security (RLS) Policies</h3>
+
+  <h4>Properties Table RLS</h4>
+  <pre data-lang="SQL"><code><span class="kw">ALTER TABLE</span> <span class="ty">public</span>.<span class="ty">properties</span> <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="cm">-- Anyone can view available properties</span>
+<span class="kw">CREATE POLICY</span> <span class="st">"Anyone can view properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">properties</span> <span class="kw">FOR SELECT</span>
+  <span class="kw">USING</span> (<span class="vr">available</span> <span class="op">=</span> <span class="nu">true</span>);
+
+<span class="cm">-- Only authenticated users can insert with their own UID</span>
+<span class="kw">CREATE POLICY</span> <span class="st">"Owners can insert their properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">properties</span> <span class="kw">FOR INSERT</span>
+  <span class="kw">WITH CHECK</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">owner_id</span>);
+
+<span class="cm">-- Only listing owners can modify listings</span>
+<span class="kw">CREATE POLICY</span> <span class="st">"Owners can update their properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">properties</span> <span class="kw">FOR UPDATE</span>
+  <span class="kw">USING</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">owner_id</span>);</code></pre>
+
+  <h4>Saved Properties Table RLS</h4>
+  <pre data-lang="SQL"><code><span class="kw">ALTER TABLE</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="kw">CREATE POLICY</span> <span class="st">"Users can view their saved properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> <span class="kw">FOR SELECT</span>
+  <span class="kw">USING</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">user_id</span>);
+
+<span class="kw">CREATE POLICY</span> <span class="st">"Users can save properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> <span class="kw">FOR INSERT</span>
+  <span class="kw">WITH CHECK</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">user_id</span>);
+
+<span class="kw">CREATE POLICY</span> <span class="st">"Users can unsave properties"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> <span class="kw">FOR DELETE</span>
+  <span class="kw">USING</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">user_id</span>);</code></pre>
+
+  <h4>Users Table RLS</h4>
+  <pre data-lang="SQL"><code><span class="kw">ALTER TABLE</span> <span class="ty">public</span>.<span class="ty">users</span> <span class="kw">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="kw">CREATE POLICY</span> <span class="st">"Users can view their own profile"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">users</span> <span class="kw">FOR SELECT</span>
+  <span class="kw">USING</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">id</span>);
+
+<span class="kw">CREATE POLICY</span> <span class="st">"Users can update their own profile"</span>
+  <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">users</span> <span class="kw">FOR ALL</span>
+  <span class="kw">USING</span> (<span class="fn">auth.uid</span>() <span class="op">=</span> <span class="vr">id</span>);</code></pre>
+
+  <h3>8.3 Recommended Database Indexes</h3>
+  <pre data-lang="SQL"><code><span class="kw">CREATE INDEX</span> <span class="vr">idx_properties_available</span> <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">properties</span> (<span class="vr">available</span>) <span class="kw">WHERE</span> <span class="vr">available</span> <span class="op">=</span> <span class="nu">true</span>;
+<span class="kw">CREATE INDEX</span> <span class="vr">idx_properties_location</span> <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">properties</span> (<span class="vr">latitude</span>, <span class="vr">longitude</span>);
+<span class="kw">CREATE INDEX</span> <span class="vr">idx_saved_properties_user</span> <span class="kw">ON</span> <span class="ty">public</span>.<span class="ty">saved_properties</span> (<span class="vr">user_id</span>);</code></pre>
+</section>
+
+
+<!-- ============================== 9. AUTHENTICATION & SECURITY ============================== -->
+<section id="s9" class="page-break">
+  <h2><span class="sec-num">09</span> Authentication &amp; Security</h2>
+
+  <h3>9.1 Phone OTP Flow Detail</h3>
+  <div class="flow-box">
+    <pre>[User App Input] ─── Phone number ──→ [Supabase Auth Client] ──→ [SMS Gateway] ──→ [User Device (OTP)]
+[User App Input] ─── Verify Code ───→ [Supabase Auth Client] ──→ [JWT Token Issued] ──→ [App Session Start]</pre>
+  </div>
+  <ol>
+    <li><strong>Format Constraints:</strong> Standardizes phone inputs on the client before request triggers.</li>
+    <li><strong>PKCE Flow Verification:</strong> Secure token exchange generating Access JWT and Refresh Token.</li>
+    <li><strong>Local Encryption:</strong> Encrypted auth state payloads stored in client's keychain or secure device storage.</li>
+  </ol>
+
+  <h3>9.2 OAuth Google Flow</h3>
+  <ul>
+    <li><strong>Redirect Scheme:</strong> Custom deep-link: <code>spotlet://auth/callback</code></li>
+    <li><strong>Web Browser Handshake:</strong> Uses <code>expo-web-browser</code> via <code>WebBrowser.openAuthSessionAsync(url, redirectUrl)</code></li>
+    <li><strong>Fallback Resolution:</strong> Parses implicit URL hashes directly if PKCE exchange code is missing.</li>
+  </ul>
+
+  <h3>9.3 Security Best Practices</h3>
+  <div class="info-box rose">
+    <div class="box-title">Security Rules</div>
+    <ul>
+      <li><strong>Row-Level Enforcement:</strong> RLS policies prevent accessing or modifying other users' records.</li>
+      <li><strong>Client Env Hygiene:</strong> Only <code>EXPO_PUBLIC_</code> prefixed variables compiled in app packages. No service role keys shipped.</li>
+      <li><strong>Input Sanitization:</strong> Regex cleaning on phone numbers (+91 prefix validation) and descriptions.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!-- ============================== 10. UI/UX DESIGN SYSTEM ============================== -->
+<section id="s10" class="page-break">
+  <h2><span class="sec-num">10</span> UI/UX Design System</h2>
+
+  <h3>10.1 Color Palette (Material Design 3 Dark)</h3>
+  <div class="color-grid">
+    <div class="color-swatch">
+      <div class="swatch" style="background: #121212;"></div>
+      <div class="color-info"><span class="color-name">Background</span><span class="color-hex">#121212</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #1E1E1E;"></div>
+      <div class="color-info"><span class="color-name">Surface</span><span class="color-hex">#1E1E1E</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #BB86FC;"></div>
+      <div class="color-info"><span class="color-name">Primary</span><span class="color-hex">#BB86FC</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #03DAC6;"></div>
+      <div class="color-info"><span class="color-name">Secondary</span><span class="color-hex">#03DAC6</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #CF6679;"></div>
+      <div class="color-info"><span class="color-name">Tertiary</span><span class="color-hex">#CF6679</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #2D2D2D;"></div>
+      <div class="color-info"><span class="color-name">Border</span><span class="color-hex">#2D2D2D</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #FFFFFF;"></div>
+      <div class="color-info"><span class="color-name">Text</span><span class="color-hex">#FFFFFF</span></div>
+    </div>
+    <div class="color-swatch">
+      <div class="swatch" style="background: #888888;"></div>
+      <div class="color-info"><span class="color-name">Text Sub</span><span class="color-hex">#888888</span></div>
+    </div>
+  </div>
+
+  <h3>10.2 Typography</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Element</th><th>Font</th><th>Size</th><th>Weight</th></tr></thead>
+      <tbody>
+        <tr><td>Titles</td><td>Inter / Roboto</td><td>24–28px</td><td>Bold (700)</td></tr>
+        <tr><td>Cards</td><td>Inter / Roboto</td><td>16–18px</td><td>Semi-Bold (600)</td></tr>
+        <tr><td>Details / Pills</td><td>Inter / Roboto</td><td>12–13px</td><td>Medium / Bold</td></tr>
+        <tr><td>Descriptions</td><td>Inter / Roboto</td><td>13–14px</td><td>Regular (400)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>10.3 Micro-Animations &amp; Transitions</h3>
+  <ul>
+    <li><strong>Snap-to-Carousel:</strong> Momentum-snapping intervals to focus cards smoothly as user swipes.</li>
+    <li><strong>Bottom Sheet Details:</strong> Modals use <code>animationType="slide"</code> on mobile viewports.</li>
+    <li><strong>Glassmorphism (Web Login):</strong> Semi-transparent card with blur filter for depth.</li>
+  </ul>
+  <pre data-lang="CSS"><code><span class="at">backdrop-filter</span>: <span class="fn">blur</span>(<span class="nu">20px</span>);
+<span class="at">background-color</span>: <span class="fn">rgba</span>(<span class="nu">255</span>, <span class="nu">255</span>, <span class="nu">255</span>, <span class="nu">0.04</span>);
+<span class="at">border</span>: <span class="nu">1px</span> <span class="kw">solid</span> <span class="fn">rgba</span>(<span class="nu">255</span>, <span class="nu">255</span>, <span class="nu">255</span>, <span class="nu">0.08</span>);</code></pre>
+</section>
+
+
+<!-- ============================== 11. USER FLOW DIAGRAMS ============================== -->
+<section id="s11" class="page-break">
+  <h2><span class="sec-num">11</span> User Flow Diagrams</h2>
+
+  <h3>11.1 Onboarding &amp; Phone Verification</h3>
+  <div class="flow-box">
+    <pre>[Start App] ── Wait Session Ready ──▶ [Session Exist?]
+                                            │
+                    ┌───────────────────────┴───────────────────────┐
+                    ▼ Yes                                           ▼ No
+               [Go to Home Feed]                             [Show Login Screen]
+                                                                    │
+                                                             [Enter Phone]
+                                                                    │
+                                                             [Click Send OTP]
+                                                                    │
+                                                             [Enter 6-Digit OTP]
+                                                                    │
+                                                            [Click Verify & Login]
+                                                                    │
+                                                             [Redirect to (tabs)]</pre>
+  </div>
+
+  <h3>11.2 Discover &amp; Direct Contact</h3>
+  <div class="flow-box">
+    <pre>[Home Feed / Map] ── Select Listing ──▶ [Open Details Page]
+                                               │
+                       ┌───────────────────────┴───────────────────────┐
+                       ▼                                               ▼
+               [Tap Call Owner]                               [Tap WhatsApp]
+                       │                                               │
+             [Open Native Dialer]                             [Clean Phone Format]
+                       │                                               │
+             [Trigger tel: Link]                             [Build Preset Message]
+                                                                       │
+                                                             [Open WhatsApp App]</pre>
+  </div>
+
+  <h3>11.3 Property Creation</h3>
+  <div class="flow-box">
+    <pre>[Go to Add Listing] ── Fill Forms (Rent, Specs, Title) ──▶ [Type Address]
+                                                                 │
+                                                       [Debounce Geocoder 1.5s]
+                                                                 │
+                                                       [Update Coordinate Pin]
+                                                                 │
+                                                       [Upload Media Gallery]
+                                                                 │
+                                                       [Select Image Files]
+                                                                 │
+                                                       [Upload to Cloudinary CDN]
+                                                                 │
+                                                       [Submit Insert SQL]
+                                                                 │
+                                                       [Reset Form & Redirect]</pre>
+  </div>
+</section>
+
+
+<!-- ============================== 12. API DOCUMENTATION ============================== -->
+<section id="s12" class="page-break">
+  <h2><span class="sec-num">12</span> API Documentation</h2>
+
+  <h3>12.1 Supabase PostgREST Endpoint</h3>
+  <div class="info-box teal">
+    <div class="box-title">Base Configuration</div>
+    <p><strong>Base URL:</strong> <code>https://&lt;project-ref&gt;.supabase.co/rest/v1</code></p>
+    <p><strong>Authorization:</strong> Bearer token (JWT User Session) + API Gateway Anon Key</p>
+  </div>
+
+  <h3>12.2 Cloudinary REST Image API</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Parameter</th><th>Details</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Endpoint</strong></td><td><code>POST https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload</code></td></tr>
+        <tr><td><strong>Content-Type</strong></td><td><code>multipart/form-data</code></td></tr>
+        <tr><td><strong>file</strong></td><td>Image binary / blob</td></tr>
+        <tr><td><strong>upload_preset</strong></td><td>Unsigned preset value (e.g., <code>spotlet_upload</code>)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Success Response</h4>
+  <pre data-lang="JSON"><code>{
+  <span class="st">"secure_url"</span>: <span class="st">"https://res.cloudinary.com/.../image.jpg"</span>,
+  <span class="st">"public_id"</span>: <span class="st">"image_public_id"</span>,
+  <span class="st">"format"</span>: <span class="st">"jpg"</span>
+}</code></pre>
+
+  <h3>12.3 Deep Link Integrations</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Channel</th><th>URI Scheme</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>WhatsApp</strong></td>
+          <td><code>whatsapp://send?phone=${cleanPhone}&amp;text=${message}</code></td>
+          <td>Web fallback: <code>https://wa.me/${cleanPhone}?text=${message}</code></td>
+        </tr>
+        <tr>
+          <td><strong>Phone Call</strong></td>
+          <td><code>tel:${owner_phone}</code></td>
+          <td>Opens native dialer</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box purple">
+    <div class="box-title">WhatsApp Template</div>
+    <p><code>Hi, I'm interested in your property listing "${title}" on SpotLet.</code></p>
+  </div>
+</section>
+
+
+<!-- ============================== 13. STATE MANAGEMENT ============================== -->
+<section id="s13" class="page-break">
+  <h2><span class="sec-num">13</span> State Management Logic</h2>
+
+  <h3>13.1 Global State (AuthContext)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Property</th><th>Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>AuthUser</td><td>User session profile information</td></tr>
+        <tr><td><code>session</code></td><td>Session</td><td>Active JWT session token</td></tr>
+        <tr><td><code>isLoading</code></td><td>boolean</td><td>Controls app boot splash rendering</td></tr>
+        <tr><td><code>error</code></td><td>string | null</td><td>Authentication feedback error messages</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box teal">
+    <div class="box-title">Safety Net</div>
+    <p>A 5-second timer forces <code>isLoading</code> to <code>false</code> on app boot if Supabase connection fails, preventing infinite loading states.</p>
+  </div>
+
+  <h3>13.2 Local State &amp; UI Caching</h3>
+  <ul>
+    <li><strong>Search &amp; Filters:</strong> Managed locally using React state, filtering cached listing arrays on the client side without triggering new database queries.</li>
+    <li><strong>Optimistic Bookmarking:</strong> Updates the local set of saved properties instantly. If the async API call fails, reverts the bookmark state to ensure smooth UI behavior.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 14. PERFORMANCE OPTIMIZATION ============================== -->
+<section id="s14">
+  <h2><span class="sec-num">14</span> Performance Optimization</h2>
+
+  <h3>14.1 Frontend Optimization</h3>
+  <ul>
+    <li><strong>Debounced Address Inputs:</strong> 1.5-second debounce on property listing form. Queries geographical coordinates only after user stops typing.</li>
+    <li><strong>Web Bundle Size Optimization:</strong> Platform-specific map wrappers prevent compilation crashes on web by replacing native Google Maps imports with Leaflet.</li>
+    <li><strong>Carousel Snapping:</strong> Horizontal scroll lists snap to calculated indices on scroll events to prevent map UI lag.</li>
+  </ul>
+
+  <h3>14.2 Media Optimization</h3>
+  <ul>
+    <li><strong>Compression:</strong> Quality constraints (<code>quality: 0.8</code>) during media library selections.</li>
+    <li><strong>Fallback Assets:</strong> Unsplash placeholder assets on upload timeout failures.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 15. DEVOPS & DEPLOYMENT ============================== -->
+<section id="s15" class="page-break">
+  <h2><span class="sec-num">15</span> DevOps &amp; Deployment</h2>
+
+  <h3>15.1 Deployment Architecture</h3>
+  <div class="diagram">                               ┌──────────────┐
+                               │  GitHub Repo │
+                               └──────┬───────┘
+                                      │
+                     ┌────────────────┴────────────────┐
+                     ▼                                 ▼
+              [EAS Build Pipeline]             [Vercel CI/CD Web]
+                     │                                 │
+             ┌───────┴───────┐                         ▼
+             ▼               ▼                    [Vercel Edge]
+      [Google Play]     [Apple App Store]        (SPA Redirects)</div>
+
+  <h3>15.2 Web Deployment (Vercel SPA)</h3>
+  <p>Web applications deploy on Vercel as single-page applications. Rewrites route all requests back to <code>/index.html</code>.</p>
+  <pre data-lang="JSON"><code>{
+  <span class="st">"rewrites"</span>: [
+    { <span class="st">"source"</span>: <span class="st">"/(.*)"</span>, <span class="st">"destination"</span>: <span class="st">"/index.html"</span> }
+  ]
+}</code></pre>
+  <p><strong>Build command:</strong> <code>expo export --platform web</code> (outputs to <code>/dist</code>).</p>
+
+  <h3>15.3 Mobile App Builds</h3>
+  <ul>
+    <li><strong>EAS Build CLI:</strong> Handles native compilation of APK (Android) and IPA (iOS) binaries.</li>
+    <li><strong>Over-The-Air (OTA) Updates (Planned):</strong> Expo Updates to push updates directly to active user devices.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 16. TESTING STRATEGY ============================== -->
+<section id="s16">
+  <h2><span class="sec-num">16</span> Testing Strategy</h2>
+
+  <h3>16.1 Testing Frameworks</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool</th><th>Purpose</th><th>Command</th></tr></thead>
+      <tbody>
+        <tr><td>Jest</td><td>Unit testing for utility &amp; validation logic</td><td><code>npm run test</code></td></tr>
+        <tr><td>ESLint</td><td>Code style and quality checks</td><td><code>npm run lint</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>16.2 Verification Plan</h3>
+  <ul>
+    <li><strong>Manual Verification:</strong> Run locally on iOS Simulator and Android Emulator, test on physical devices using Expo Go.</li>
+    <li><strong>Network Failure Testing:</strong> Simulate offline scenarios to verify geocoder fallbacks and user error messaging.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 17. KNOWN ISSUES & RISKS ============================== -->
+<section id="s17" class="page-break">
+  <h2><span class="sec-num">17</span> Known Issues &amp; Risks</h2>
+
+  <h3>17.1 Technical Limitations</h3>
+
+  <div class="info-box rose">
+    <div class="box-title">⚠ DOMException Crash on Hermes</div>
+    <p>The Hermes engine on native Android/iOS does not include <code>DOMException</code>, causing Supabase client crashes on network errors.</p>
+    <p><strong>Solution:</strong> Integrated a global polyfill in <code>lib/polyfills.ts</code> and <code>entry.js</code> to define <code>DOMException</code> on boot.</p>
+  </div>
+
+  <div class="info-box rose">
+    <div class="box-title">⚠ Web Compilation Failures</div>
+    <p><code>react-native-maps</code> cannot compile on web platforms.</p>
+    <p><strong>Solution:</strong> Platform-specific map implementations (<code>CustomMap.tsx</code> and <code>CustomMap.web.tsx</code>) isolate Leaflet and native code respectively.</p>
+  </div>
+
+  <div class="info-box rose">
+    <div class="box-title">⚠ Leaflet Web Map Limitations</div>
+    <p>Leaflet uses standard iframe container boundaries, limiting direct UI styling from React Native contexts.</p>
+  </div>
+
+  <h3>17.2 Scalability &amp; Security Risks</h3>
+
+  <div class="info-box purple">
+    <div class="box-title">SMS Rate Limiting</div>
+    <p>High traffic can quickly exhaust SMS validation budgets.</p>
+    <p><strong>Mitigation:</strong> Enable Google OAuth as alternative, configure custom Twilio gateways with captcha checks.</p>
+  </div>
+
+  <div class="info-box purple">
+    <div class="box-title">Client API Key Exposure</div>
+    <p>Expo bundles <code>EXPO_PUBLIC_</code> variables directly into client apps.</p>
+    <p><strong>Mitigation:</strong> Strict database RLS policies. Anonymous key should only grant access within RLS parameters.</p>
+  </div>
+</section>
+
+
+<!-- ============================== 18. FUTURE ROADMAP ============================== -->
+<section id="s18" class="page-break">
+  <h2><span class="sec-num">18</span> Future Roadmap</h2>
+
+  <h3>18.1 Short-Term Goals</h3>
+  <div class="pill-row">
+    <span class="pill pill-secondary">Immediate</span>
+  </div>
+  <ul>
+    <li><strong>Price Range Filter Slider:</strong> Replace inputs with a visual range selector.</li>
+    <li><strong>EAS Auto-Builds:</strong> Configure EAS pipelines for automated builds.</li>
+    <li><strong>Neighbourhood Heatmaps:</strong> Display average rental price densities.</li>
+  </ul>
+
+  <h3>18.2 Medium-Term Goals</h3>
+  <div class="pill-row">
+    <span class="pill pill-primary">Q3–Q4</span>
+  </div>
+  <ul>
+    <li><strong>In-App Chat:</strong> Messaging system to keep communication within the platform.</li>
+    <li><strong>Landlord Dashboard:</strong> Moderation interfaces and landlord document verification (Aadhaar).</li>
+  </ul>
+
+  <h3>18.3 Long-Term Goals</h3>
+  <div class="pill-row">
+    <span class="pill pill-tertiary">Future</span>
+  </div>
+  <ul>
+    <li><strong>AI Smart Recommendations:</strong> Personalized discovery feeds based on saved properties and search criteria.</li>
+    <li><strong>Digital Rent Agreements:</strong> Integrated digital lease contracts and secure rental payment gateways.</li>
+  </ul>
+</section>
+
+
+<!-- ============================== 19. AI CONTEXT SUMMARY ============================== -->
+<section id="s19" class="page-break">
+  <h2><span class="sec-num">19</span> AI Context Summary</h2>
+
+  <div class="info-box teal">
+    <div class="box-title">Optimized for LLM Interpreters</div>
+    <p>This section provides a machine-readable context block for AI agents continuing development on SpotLet.</p>
+  </div>
+
+  <pre data-lang="YAML"><code><span class="vr">context</span>:
+  <span class="vr">app_type</span>: <span class="st">Cross-Platform Map-Based Rental Discovery App (Expo Router, Expo SDK 54)</span>
+  <span class="vr">target_audience</span>: <span class="st">India Residential Rental Market (BHKs, Rooms, PGs)</span>
+  <span class="vr">accent_colors</span>:
+    <span class="vr">primary</span>: <span class="st">"#BB86FC"</span>      <span class="cm"># Vibrant Purple</span>
+    <span class="vr">secondary</span>: <span class="st">"#03DAC6"</span>    <span class="cm"># Teal</span>
+    <span class="vr">background</span>: <span class="st">"#121212"</span>   <span class="cm"># Pure dark grey</span>
+    <span class="vr">surface</span>: <span class="st">"#1E1E1E"</span>      <span class="cm"># Light grey</span>
+  <span class="vr">critical_dependencies</span>:
+    <span class="vr">supabase_auth</span>: <span class="st">Phone SMS OTP passwordless flow & Google OAuth</span>
+    <span class="vr">database</span>: <span class="st">PostgreSQL schemas with active Row Level Security (RLS) policies</span>
+    <span class="vr">maps_native</span>: <span class="st">react-native-maps (compiles on mobile)</span>
+    <span class="vr">maps_web</span>: <span class="st">Leaflet iframe fallback inside CustomMap.web.tsx</span>
+    <span class="vr">media</span>: <span class="st">Cloudinary REST uploads via FormData</span>
+
+<span class="vr">implementation_rules</span>:
+  <span class="nu">1</span>: <span class="st">All polyfills must compile before Expo entry imports. Use entry.js as main file.</span>
+  <span class="nu">2</span>: <span class="st">Do NOT import react-native-maps in web-resolved components. Use CustomMap wrapper.</span>
+  <span class="nu">3</span>: <span class="st">Stick to forced UserInterfaceStyle="dark" using react-native-paper MD3 dark themes.</span>
+  <span class="nu">4</span>: <span class="st">Do not bypass RLS policies on tables properties, saved_properties, or users.</span>
+  <span class="nu">5</span>: <span class="st">Deep links to telephone call and WhatsApp must use cleaned number patterns.</span>
+
+<span class="vr">development_priorities</span>:
+  <span class="vr">first</span>: <span class="st">Push notification pipelines</span>
+  <span class="vr">second</span>: <span class="st">Visual price slider ranges</span>
+  <span class="vr">third</span>: <span class="st">Landlord document checks (Aadhaar verification)</span></code></pre>
+</section>
+
+<hr>
+
+<!-- ============================== FOOTER ============================== -->
+<div class="doc-footer">
+  <p>SpotLet — Project Blueprint & Software Architecture Specification v1.0</p>
+  <p>Confidential • June 2026</p>
+  <p style="margin-top: 8px; color: var(--text-muted);">Generated for production-grade development reference.</p>
+</div>
+
+</div><!-- /doc-wrapper -->
+</body>
+</html>

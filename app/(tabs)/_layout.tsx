@@ -1,6 +1,7 @@
 import { Tabs, Slot, usePathname, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useResponsive } from '@/utils/useResponsive';
 
 export type TabsParamList = {
   index: undefined;
@@ -65,8 +66,47 @@ function WebTopNav() {
   );
 }
 
+function MobileWebBottomBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isActive = (name: string) => {
+    if (name === '/(tabs)') return pathname === '/' || pathname === '/(tabs)';
+    const segment = name.replace('/(tabs)/', '');
+    return pathname.includes(segment);
+  };
+
+  return (
+    <View style={mobileWebStyles.bottomBar}>
+      {NAV_ITEMS.map((item) => {
+        const active = isActive(item.name);
+        return (
+          <TouchableOpacity
+            key={item.name}
+            style={mobileWebStyles.tabItem}
+            onPress={() => router.push(item.name as any)}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons
+              name={item.icon}
+              size={24}
+              color={active ? '#BB86FC' : '#666666'}
+            />
+            <Text style={[mobileWebStyles.tabLabel, active && mobileWebStyles.tabLabelActive]}>
+              {item.label === 'Add Listing' ? 'Add' : item.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function TabsLayout() {
-  if (Platform.OS === 'web') {
+  const { isMobileWeb, isDesktopWeb, isNativeMobile } = useResponsive();
+
+  // Desktop Web: Top nav bar
+  if (isDesktopWeb) {
     return (
       <View style={webStyles.container}>
         <WebTopNav />
@@ -77,6 +117,19 @@ export default function TabsLayout() {
     );
   }
 
+  // Mobile Web: Bottom tab bar (custom)
+  if (isMobileWeb) {
+    return (
+      <View style={mobileWebStyles.container}>
+        <View style={mobileWebStyles.content}>
+          <Slot />
+        </View>
+        <MobileWebBottomBar />
+      </View>
+    );
+  }
+
+  // Native Mobile: Expo Tabs
   return (
     <Tabs
       screenOptions={{
@@ -197,5 +250,41 @@ const webStyles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+});
+
+const mobileWebStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  content: {
+    flex: 1,
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    backgroundColor: '#1E1E1E',
+    borderTopWidth: 1,
+    borderTopColor: '#2D2D2D',
+    height: 60,
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    paddingBottom: 4,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  tabLabel: {
+    color: '#666666',
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  tabLabelActive: {
+    color: '#BB86FC',
+    fontWeight: '700',
   },
 });

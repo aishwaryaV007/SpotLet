@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Alert, Platform } from 'react-native';
 import { Button } from 'react-native-paper';
 import { useAuth } from '@/contexts/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-const isWeb = Platform.OS === 'web';
+import LoginPromptSheet from '@/components/LoginPromptSheet';
+import { useResponsive } from '@/utils/useResponsive';
+import { TouchableOpacity } from 'react-native';
 
 export default function ProfileScreen() {
   const { user, signOut, isLoading } = useAuth();
+  const { isDesktopWeb } = useResponsive();
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const handleSignOut = async () => {
     try {
@@ -22,7 +25,35 @@ export default function ProfileScreen() {
     }
   };
 
-  if (isWeb) {
+  // Guest gate: show login prompt if not logged in
+  if (!user) {
+    return (
+      <View style={isDesktopWeb ? webStyles.container : styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+          <View style={webStyles.avatarContainer}>
+            <MaterialCommunityIcons name="account-circle" size={80} color="#3D3D3D" />
+          </View>
+          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginTop: 16 }}>Sign In Required</Text>
+          <Text style={{ color: '#888888', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+            Sign in to view your profile, manage listings, and more.
+          </Text>
+          <TouchableOpacity
+            style={{ marginTop: 24, backgroundColor: '#BB86FC', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12 }}
+            onPress={() => setShowLoginPrompt(true)}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+        <LoginPromptSheet
+          visible={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          message="Sign in to view your profile"
+        />
+      </View>
+    );
+  }
+
+  if (isDesktopWeb) {
     return (
       <View style={webStyles.container}>
         <View style={webStyles.card}>
@@ -69,7 +100,7 @@ export default function ProfileScreen() {
     );
   }
 
-  // ─── MOBILE LAYOUT (unchanged) ───
+  // ─── MOBILE LAYOUT ───
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile Screen</Text>

@@ -27,6 +27,31 @@ if (Platform.OS === 'web') {
       window.alert(msg);
     }
   };
+
+  // Inject global styles to ensure fullscreen layout on web
+  const styleEl = document.createElement('style');
+  styleEl.textContent = `
+    html, body, #root {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: #121212;
+    }
+    /* Ensure proper viewport on mobile browsers */
+    @viewport { width: device-width; }
+    meta[name="viewport"] { width: device-width; initial-scale: 1; }
+  `;
+  document.head.appendChild(styleEl);
+
+  // Also set the viewport meta tag if missing
+  if (!document.querySelector('meta[name="viewport"]')) {
+    const meta = document.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+    document.head.appendChild(meta);
+  }
 }
 
 const darkTheme = {
@@ -59,11 +84,9 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === 'auth';
 
     try {
-      if (!isLoggedIn && !inAuthGroup) {
-        // Redirect to the sign-in page if not logged in
-        router.replace('/auth/login');
-      } else if (isLoggedIn && inAuthGroup) {
-        // Redirect to the tabs page if logged in
+      // GUEST BROWSING: Only redirect logged-in users away from auth pages.
+      // Non-logged-in users are allowed to access tabs freely.
+      if (isLoggedIn && inAuthGroup) {
         router.replace('/(tabs)');
       }
     } catch (e) {
@@ -76,7 +99,7 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, height: Platform.OS === 'web' ? '100%' : undefined }}>
       <PaperProvider theme={darkTheme}>
         <AuthProvider>
           <RootLayoutNav />

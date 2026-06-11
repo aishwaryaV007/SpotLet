@@ -19,6 +19,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { fetchSavedProperties, unsaveProperty } from '@/lib/supabase';
 import { Property } from '@/types/property';
 import PropertyDetailsModal from '@/components/PropertyDetailsModal';
+import LoginPromptSheet from '@/components/LoginPromptSheet';
+import { useResponsive } from '@/utils/useResponsive';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
 
@@ -26,6 +28,10 @@ const isWeb = Platform.OS === 'web';
 
 export default function SavedScreen() {
   const { user } = useAuth();
+  const { isMobile, isDesktopWeb } = useResponsive();
+
+  // Login Prompt for guests
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [savedProperties, setSavedProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -257,8 +263,8 @@ export default function SavedScreen() {
     </View>
   );
 
-  // ─── WEB LAYOUT ───
-  if (isWeb) {
+  // ─── WEB DESKTOP LAYOUT ───
+  if (isDesktopWeb) {
     return (
       <View style={webStyles.container}>
         {/* Header */}
@@ -275,7 +281,14 @@ export default function SavedScreen() {
         {/* Content */}
         <View style={webStyles.contentArea}>
           {!user ? (
-            renderCenteredState('lock-outline', 'Sign In Required', 'Please log in to view your saved listings.', 'Go to Login', () => router.replace('/auth'))
+            <View style={webStyles.centeredMessage}>
+              <MaterialCommunityIcons name="lock-outline" size={64} color="#3D3D3D" />
+              <Text style={webStyles.messageTitle}>Sign In Required</Text>
+              <Text style={webStyles.messageSubtitle}>Please log in to view your saved listings.</Text>
+              <TouchableOpacity style={webStyles.retryBtn} onPress={() => setShowLoginPrompt(true)}>
+                <Text style={webStyles.retryBtnText}>Sign In</Text>
+              </TouchableOpacity>
+            </View>
           ) : hasError ? (
             renderCenteredState('wifi-off', 'Connection Failed', errorMessage || 'Check your internet connection.', 'Retry', () => loadSavedListings())
           ) : loading ? (
@@ -300,6 +313,14 @@ export default function SavedScreen() {
           onSaveToggle={handleUnsave}
           onCall={handleCall}
           onWhatsApp={handleWhatsApp}
+          isGuest={!user}
+        />
+
+        {/* Login Prompt */}
+        <LoginPromptSheet
+          visible={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          message="Sign in to view saved listings"
         />
       </View>
     );
@@ -314,7 +335,14 @@ export default function SavedScreen() {
       </View>
 
       {!user ? (
-        renderCenteredState('lock-outline', 'Sign In Required', 'Please log in to view your saved listings.', 'Go to Login', () => router.replace('/auth'))
+        <View style={styles.centeredContainer}>
+          <MaterialCommunityIcons name="lock-outline" size={80} color="#3D3D3D" />
+          <Text style={styles.errorTitle}>Sign In Required</Text>
+          <Text style={styles.errorSubtitle}>Please log in to view your saved listings.</Text>
+          <TouchableOpacity style={styles.actionBtn} onPress={() => setShowLoginPrompt(true)}>
+            <Text style={styles.actionBtnText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
       ) : hasError ? (
         renderCenteredState('wifi-off', 'Network Connection Failed', errorMessage || 'Check your internet connection and try again.', 'Retry Connection', () => loadSavedListings())
       ) : loading ? (
@@ -344,6 +372,14 @@ export default function SavedScreen() {
         onSaveToggle={handleUnsave}
         onCall={handleCall}
         onWhatsApp={handleWhatsApp}
+        isGuest={!user}
+      />
+
+      {/* Login Prompt */}
+      <LoginPromptSheet
+        visible={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        message="Sign in to view saved listings"
       />
     </SafeAreaView>
   );

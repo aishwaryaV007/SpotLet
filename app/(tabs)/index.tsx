@@ -26,13 +26,14 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Property } from '@/types/property';
 import PropertyDetailsModal from '@/components/PropertyDetailsModal';
+import LoginPromptSheet from '@/components/LoginPromptSheet';
+import { useResponsive } from '@/utils/useResponsive';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
 
-const isWeb = Platform.OS === 'web';
-
 export default function HomeScreen() {
   const { user } = useAuth();
+  const { isMobile, isDesktopWeb } = useResponsive();
   
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -51,6 +52,9 @@ export default function HomeScreen() {
   // Detail Modal
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  
+  // Login Prompt for guests
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -130,7 +134,7 @@ export default function HomeScreen() {
 
   const handleSaveToggle = async (propertyId: string) => {
     if (!user) {
-      Alert.alert('Sign In Required', 'Please log in to save properties.');
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -432,9 +436,9 @@ export default function HomeScreen() {
     );
   };
 
-  // ─── WEB LAYOUT ───
+  // ─── WEB DESKTOP LAYOUT ───
 
-  if (isWeb) {
+  if (isDesktopWeb) {
     return (
       <View style={webStyles.container}>
         {/* Header */}
@@ -524,6 +528,14 @@ export default function HomeScreen() {
           onSaveToggle={handleSaveToggle}
           onCall={handleCall}
           onWhatsApp={handleWhatsApp}
+          isGuest={!user}
+        />
+
+        {/* Login Prompt */}
+        <LoginPromptSheet
+          visible={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          message="Sign in to save properties"
         />
       </View>
     );
@@ -638,6 +650,14 @@ export default function HomeScreen() {
         onSaveToggle={handleSaveToggle}
         onCall={handleCall}
         onWhatsApp={handleWhatsApp}
+        isGuest={!user}
+      />
+
+      {/* Login Prompt */}
+      <LoginPromptSheet
+        visible={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        message="Sign in to save properties"
       />
     </SafeAreaView>
   );

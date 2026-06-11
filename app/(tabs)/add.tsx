@@ -23,6 +23,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createProperty } from '@/lib/supabase';
 import { uploadToCloudinary } from '@/lib/cloudinary';
 import { PropertyType, ForWhomType } from '@/types/property';
+import LoginPromptSheet from '@/components/LoginPromptSheet';
+import { useResponsive } from '@/utils/useResponsive';
 // Default initial location: Bangalore center
 const INITIAL_COORDS = {
   latitude: 12.9716,
@@ -43,6 +45,10 @@ const DARK_MAP_STYLE = [
 
 export default function AddScreen() {
   const { user } = useAuth();
+  const { isDesktopWeb, isMobile } = useResponsive();
+
+  // Login Prompt for guests
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   // Form Fields State
   const [title, setTitle] = useState('');
@@ -345,9 +351,35 @@ export default function AddScreen() {
 
   const Wrapper = Platform.OS === 'web' ? View : SafeAreaView;
 
+  // Guest gate: show login prompt if not logged in
+  if (!user) {
+    return (
+      <Wrapper style={Platform.OS === 'web' && isDesktopWeb ? webFormStyles.outerContainer : styles.container}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+          <MaterialCommunityIcons name="lock-outline" size={80} color="#3D3D3D" />
+          <Text style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginTop: 16 }}>Sign In Required</Text>
+          <Text style={{ color: '#888888', fontSize: 14, textAlign: 'center', marginTop: 8, lineHeight: 20 }}>
+            You need to sign in to list a property on SpotLet.
+          </Text>
+          <TouchableOpacity
+            style={{ marginTop: 24, backgroundColor: '#BB86FC', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12 }}
+            onPress={() => setShowLoginPrompt(true)}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 16 }}>Sign In to List Property</Text>
+          </TouchableOpacity>
+        </View>
+        <LoginPromptSheet
+          visible={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          message="Sign in to list your property"
+        />
+      </Wrapper>
+    );
+  }
+
   return (
-    <Wrapper style={Platform.OS === 'web' ? webFormStyles.outerContainer : styles.container}>
-      <View style={Platform.OS === 'web' ? webFormStyles.innerContainer : { flex: 1 }}>
+    <Wrapper style={Platform.OS === 'web' && isDesktopWeb ? webFormStyles.outerContainer : styles.container}>
+      <View style={Platform.OS === 'web' && isDesktopWeb ? webFormStyles.innerContainer : { flex: 1 }}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>List Your Property</Text>

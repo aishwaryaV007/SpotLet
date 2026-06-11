@@ -24,6 +24,8 @@ interface PropertyDetailsModalProps {
   onSaveToggle: (propertyId: string) => void;
   onCall: (phoneNumber: string) => void;
   onWhatsApp: (phoneNumber: string, title: string) => void;
+  /** If true, contact info is hidden behind a login prompt */
+  isGuest?: boolean;
 }
 
 export default function PropertyDetailsModal({
@@ -34,6 +36,7 @@ export default function PropertyDetailsModal({
   onSaveToggle,
   onCall,
   onWhatsApp,
+  isGuest = false,
 }: PropertyDetailsModalProps) {
   const { width: windowWidth } = useWindowDimensions();
   const isLargeScreen = Platform.OS === 'web' && windowWidth >= 768;
@@ -195,34 +198,46 @@ export default function PropertyDetailsModal({
                     <View style={styles.panelDivider} />
 
                     {/* Owner Info & Actions */}
-                    <View style={styles.ownerSectionWeb}>
-                      <View style={styles.ownerHeader}>
-                        <MaterialCommunityIcons name="account-circle" size={40} color="#BBBBBB" />
-                        <View style={styles.ownerInfo}>
-                          <Text style={styles.ownerName}>Property Owner</Text>
-                          <Text style={styles.ownerPhone}>{property.owner_phone || 'Contact Info Available'}</Text>
+                    {isGuest ? (
+                      <View style={styles.ownerSectionWeb}>
+                        <View style={styles.guestContactGate}>
+                          <MaterialCommunityIcons name="lock-outline" size={28} color="#BB86FC" />
+                          <Text style={styles.guestContactTitle}>Sign in to contact owner</Text>
+                          <Text style={styles.guestContactSubtitle}>
+                            Log in to see the owner's phone number and contact them via call or WhatsApp.
+                          </Text>
                         </View>
                       </View>
-
-                      {property.owner_phone && (
-                        <View style={styles.contactActionsVertical}>
-                          <TouchableOpacity
-                            style={[styles.contactBtn, styles.callBtn]}
-                            onPress={() => onCall(property.owner_phone)}
-                          >
-                            <MaterialCommunityIcons name="phone" size={18} color="#FFFFFF" />
-                            <Text style={styles.contactBtnText}>Call Owner</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.contactBtn, styles.waBtn]}
-                            onPress={() => onWhatsApp(property.owner_phone, property.title)}
-                          >
-                            <MaterialCommunityIcons name="whatsapp" size={18} color="#FFFFFF" />
-                            <Text style={styles.contactBtnText}>WhatsApp</Text>
-                          </TouchableOpacity>
+                    ) : (
+                      <View style={styles.ownerSectionWeb}>
+                        <View style={styles.ownerHeader}>
+                          <MaterialCommunityIcons name="account-circle" size={40} color="#BBBBBB" />
+                          <View style={styles.ownerInfo}>
+                            <Text style={styles.ownerName}>Property Owner</Text>
+                            <Text style={styles.ownerPhone}>{property.owner_phone || 'Contact Info Available'}</Text>
+                          </View>
                         </View>
-                      )}
-                    </View>
+
+                        {property.owner_phone && (
+                          <View style={styles.contactActionsVertical}>
+                            <TouchableOpacity
+                              style={[styles.contactBtn, styles.callBtn]}
+                              onPress={() => onCall(property.owner_phone)}
+                            >
+                              <MaterialCommunityIcons name="phone" size={18} color="#FFFFFF" />
+                              <Text style={styles.contactBtnText}>Call Owner</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                              style={[styles.contactBtn, styles.waBtn]}
+                              onPress={() => onWhatsApp(property.owner_phone, property.title)}
+                            >
+                              <MaterialCommunityIcons name="whatsapp" size={18} color="#FFFFFF" />
+                              <Text style={styles.contactBtnText}>WhatsApp</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+                    )}
                   </View>
                 </View>
               </View>
@@ -349,34 +364,46 @@ export default function PropertyDetailsModal({
               )}
 
               {/* Owner Contact */}
-              <View style={styles.ownerSection}>
-                <View style={styles.ownerHeader}>
-                  <MaterialCommunityIcons name="account-circle" size={40} color="#BBBBBB" />
-                  <View style={styles.ownerInfo}>
-                    <Text style={styles.ownerName}>Property Owner</Text>
-                    <Text style={styles.ownerPhone}>{property.owner_phone || 'Contact Info Available'}</Text>
+              {isGuest ? (
+                <View style={styles.ownerSection}>
+                  <View style={styles.guestContactGate}>
+                    <MaterialCommunityIcons name="lock-outline" size={28} color="#BB86FC" />
+                    <Text style={styles.guestContactTitle}>Sign in to contact owner</Text>
+                    <Text style={styles.guestContactSubtitle}>
+                      Log in to see the owner's phone number and contact them.
+                    </Text>
                   </View>
                 </View>
-
-                {property.owner_phone && (
-                  <View style={styles.contactActions}>
-                    <TouchableOpacity
-                      style={[styles.contactBtn, styles.callBtn]}
-                      onPress={() => onCall(property.owner_phone)}
-                    >
-                      <MaterialCommunityIcons name="phone" size={20} color="#FFFFFF" />
-                      <Text style={styles.contactBtnText}>Call Owner</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.contactBtn, styles.waBtn]}
-                      onPress={() => onWhatsApp(property.owner_phone, property.title)}
-                    >
-                      <MaterialCommunityIcons name="whatsapp" size={20} color="#FFFFFF" />
-                      <Text style={styles.contactBtnText}>WhatsApp</Text>
-                    </TouchableOpacity>
+              ) : (
+                <View style={styles.ownerSection}>
+                  <View style={styles.ownerHeader}>
+                    <MaterialCommunityIcons name="account-circle" size={40} color="#BBBBBB" />
+                    <View style={styles.ownerInfo}>
+                      <Text style={styles.ownerName}>Property Owner</Text>
+                      <Text style={styles.ownerPhone}>{property.owner_phone || 'Contact Info Available'}</Text>
+                    </View>
                   </View>
-                )}
-              </View>
+
+                  {property.owner_phone && (
+                    <View style={styles.contactActions}>
+                      <TouchableOpacity
+                        style={[styles.contactBtn, styles.callBtn]}
+                        onPress={() => onCall(property.owner_phone)}
+                      >
+                        <MaterialCommunityIcons name="phone" size={20} color="#FFFFFF" />
+                        <Text style={styles.contactBtnText}>Call Owner</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.contactBtn, styles.waBtn]}
+                        onPress={() => onWhatsApp(property.owner_phone, property.title)}
+                      >
+                        <MaterialCommunityIcons name="whatsapp" size={20} color="#FFFFFF" />
+                        <Text style={styles.contactBtnText}>WhatsApp</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </ScrollView>
         </View>
@@ -737,5 +764,24 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  // Guest contact gate styles
+  guestContactGate: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  guestContactTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  guestContactSubtitle: {
+    color: '#888888',
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 });

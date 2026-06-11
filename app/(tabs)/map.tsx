@@ -26,6 +26,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Property } from '@/types/property';
 import { Searchbar } from 'react-native-paper';
 import PropertyDetailsModal from '@/components/PropertyDetailsModal';
+import LoginPromptSheet from '@/components/LoginPromptSheet';
+import { useResponsive } from '@/utils/useResponsive';
 
 import MapView, { Marker, PROVIDER_GOOGLE } from '@/components/CustomMap';
 
@@ -65,8 +67,12 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027
 
 export default function MapScreen() {
   const { user } = useAuth();
+  const { isDesktopWeb } = useResponsive();
   const mapRef = useRef<MapView | null>(null);
   const flatListRef = useRef<FlatList | null>(null);
+
+  // Login Prompt for guests
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -217,7 +223,7 @@ export default function MapScreen() {
 
   const handleSaveToggle = async (propertyId: string) => {
     if (!user) {
-      Alert.alert('Sign In Required', 'Please log in to save properties.');
+      setShowLoginPrompt(true);
       return;
     }
 
@@ -328,8 +334,8 @@ export default function MapScreen() {
       </View>
     );
   }
-  // ─── WEB LAYOUT (split: list | map) ───
-  if (Platform.OS === 'web') {
+  // ─── WEB DESKTOP LAYOUT (split: list | map) ───
+  if (isDesktopWeb) {
     return (
       <View style={webMapStyles.container}>
         {/* Left Panel: Property List */}
@@ -456,6 +462,14 @@ export default function MapScreen() {
           onSaveToggle={handleSaveToggle}
           onCall={handleCall}
           onWhatsApp={handleWhatsApp}
+          isGuest={!user}
+        />
+
+        {/* Login Prompt */}
+        <LoginPromptSheet
+          visible={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          message="Sign in to save properties"
         />
       </View>
     );
@@ -646,6 +660,14 @@ export default function MapScreen() {
         onSaveToggle={handleSaveToggle}
         onCall={handleCall}
         onWhatsApp={handleWhatsApp}
+        isGuest={!user}
+      />
+
+      {/* Login Prompt */}
+      <LoginPromptSheet
+        visible={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        message="Sign in to save properties"
       />
     </View>
   );

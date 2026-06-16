@@ -36,12 +36,18 @@ if (Platform.OS === 'web') {
       padding: 0;
       height: 100%;
       width: 100%;
-      overflow: hidden;
+      overflow: auto;
       background-color: #121212;
     }
-    /* Ensure proper viewport on mobile browsers */
-    @viewport { width: device-width; }
-    meta[name="viewport"] { width: device-width; initial-scale: 1; }
+    /* Smooth scrolling */
+    html { scroll-behavior: smooth; }
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #1A1A1A; }
+    ::-webkit-scrollbar-thumb { background: #3D3D3D; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #555555; }
+    /* Remove outline on focused elements for cleaner look */
+    *:focus { outline: none; }
   `;
   document.head.appendChild(styleEl);
 
@@ -49,7 +55,7 @@ if (Platform.OS === 'web') {
   if (!document.querySelector('meta[name="viewport"]')) {
     const meta = document.createElement('meta');
     meta.name = 'viewport';
-    meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+    meta.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
     document.head.appendChild(meta);
   }
 }

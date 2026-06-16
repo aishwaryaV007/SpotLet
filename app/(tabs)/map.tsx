@@ -100,6 +100,18 @@ export default function MapScreen() {
     applyFilters();
   }, [properties, selectedType, selectedFurnished, selectedForWhom, searchQuery]);
 
+  // Auto-center map on selected property once the map becomes ready
+  useEffect(() => {
+    if (mapReady && selectedProperty && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: selectedProperty.latitude,
+        longitude: selectedProperty.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      }, 500);
+    }
+  }, [mapReady, selectedProperty]);
+
   const loadData = async () => {
     try {
       setHasError(false);
@@ -388,17 +400,19 @@ export default function MapScreen() {
                     onPress={() => handleSelectProperty(item)}
                     style={[webMapStyles.card, isActive && webMapStyles.cardActive]}
                   >
-                    <Image source={{ uri: imgUrl }} style={webMapStyles.cardImage} />
-                    <TouchableOpacity
-                      style={webMapStyles.cardHeart}
-                      onPress={() => handleSaveToggle(item.id)}
-                    >
-                      <MaterialCommunityIcons
-                        name={isSaved ? 'heart' : 'heart-outline'}
-                        size={18}
-                        color={isSaved ? '#CF6679' : '#FFFFFF'}
-                      />
-                    </TouchableOpacity>
+                    <View style={webMapStyles.cardImageContainer}>
+                      <Image source={{ uri: imgUrl }} style={webMapStyles.cardImage} />
+                      <TouchableOpacity
+                        style={webMapStyles.cardHeart}
+                        onPress={() => handleSaveToggle(item.id)}
+                      >
+                        <MaterialCommunityIcons
+                          name={isSaved ? 'heart' : 'heart-outline'}
+                          size={18}
+                          color={isSaved ? '#CF6679' : '#FFFFFF'}
+                        />
+                      </TouchableOpacity>
+                    </View>
                     <View style={webMapStyles.cardInfo}>
                       <Text style={webMapStyles.cardTitle} numberOfLines={1}>{item.title}</Text>
                       <Text style={webMapStyles.cardPrice}>₹{item.rent.toLocaleString('en-IN')}/mo</Text>
@@ -1001,10 +1015,15 @@ const webMapStyles = StyleSheet.create({
     borderColor: '#BB86FC',
     borderWidth: 2,
   },
-  cardImage: {
+  cardImageContainer: {
     width: '100%',
     height: 160,
+    position: 'relative',
     backgroundColor: '#2D2D2D',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
   },
   cardHeart: {
     position: 'absolute',

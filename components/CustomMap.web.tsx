@@ -256,6 +256,11 @@ const MapView = React.forwardRef((props: any, ref: any) => {
       <iframe
         ref={iframeRef}
         srcDoc={leafletHtml}
+        onLoad={() => {
+          if (props.onMapReady) {
+            props.onMapReady();
+          }
+        }}
         style={{
           width: '100%',
           height: '100%',

@@ -70,7 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const sessionPromise = supabase.auth.getSession();
       
-      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+      const result = await Promise.race([sessionPromise, timeoutPromise]) as any;
+      const session = result?.data?.session;
+      const error = result?.error;
+      
+      if (error) {
+        console.warn('Session check returned error, clearing storage:', error.message);
+        // Automatically clear invalid token from AsyncStorage
+        await supabase.auth.signOut();
+      }
       
       if (session) {
         setState({
@@ -89,6 +97,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error: any) {
       console.warn('Session check failed:', error.message);
+      // Try to clear session if it failed/threw
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {}
       setState({
         user: null,
         session: null,

@@ -2,6 +2,8 @@ import { Tabs, Slot, usePathname, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Platform, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useResponsive } from '@/utils/useResponsive';
+import { useAuth } from '@/contexts/AuthContext';
+import React, { useEffect } from 'react';
 
 export type TabsParamList = {
   index: undefined;
@@ -11,7 +13,37 @@ export type TabsParamList = {
   profile: undefined;
 };
 
-const NAV_ITEMS = [
+// Inject hover CSS once on web for nav link interactions
+if (Platform.OS === 'web') {
+  const navStyle = document.createElement('style');
+  navStyle.textContent = `
+    .spotlet-nav-link {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .spotlet-nav-link:hover {
+      background-color: rgba(187, 134, 252, 0.08) !important;
+    }
+    .spotlet-login-btn {
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .spotlet-login-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(187, 134, 252, 0.4);
+    }
+  `;
+  document.head.appendChild(navStyle);
+}
+
+const GUEST_NAV_ITEMS = [
+  { name: '/(tabs)', label: 'Home', icon: 'home' as const },
+  { name: '/(tabs)/map', label: 'Map', icon: 'map' as const },
+  { name: '/(tabs)/add', label: 'Add Listing', icon: 'plus-circle' as const },
+  { name: '/(tabs)/saved', label: 'Saved', icon: 'heart' as const },
+];
+
+const LOGGED_IN_NAV_ITEMS = [
   { name: '/(tabs)', label: 'Home', icon: 'home' as const },
   { name: '/(tabs)/map', label: 'Map', icon: 'map' as const },
   { name: '/(tabs)/add', label: 'Add Listing', icon: 'plus-circle' as const },
@@ -22,12 +54,15 @@ const NAV_ITEMS = [
 function WebTopNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   const isActive = (name: string) => {
     if (name === '/(tabs)') return pathname === '/' || pathname === '/(tabs)';
     const segment = name.replace('/(tabs)/', '');
     return pathname.includes(segment);
   };
+
+  const navItems = user ? LOGGED_IN_NAV_ITEMS : GUEST_NAV_ITEMS;
 
   return (
     <View style={webStyles.navBar}>
@@ -36,24 +71,28 @@ function WebTopNav() {
         style={webStyles.brand}
         onPress={() => router.push('/(tabs)')}
       >
-        <MaterialCommunityIcons name="home-map-marker" size={28} color="#BB86FC" />
+        <View style={webStyles.brandIconWrap}>
+          <MaterialCommunityIcons name="home-map-marker" size={24} color="#BB86FC" />
+        </View>
         <Text style={webStyles.brandText}>SpotLet</Text>
       </TouchableOpacity>
 
-      {/* Nav Links */}
+      {/* Nav Links + Auth Button */}
       <View style={webStyles.navLinks}>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(item.name);
           return (
             <TouchableOpacity
               key={item.name}
+              // @ts-ignore - web className for hover CSS
+              className="spotlet-nav-link"
               style={[webStyles.navLink, active && webStyles.navLinkActive]}
               onPress={() => router.push(item.name as any)}
             >
               <MaterialCommunityIcons
                 name={item.icon}
-                size={20}
-                color={active ? '#BB86FC' : '#888888'}
+                size={18}
+                color={active ? '#BB86FC' : '#999999'}
               />
               <Text style={[webStyles.navLinkText, active && webStyles.navLinkTextActive]}>
                 {item.label}
@@ -61,6 +100,19 @@ function WebTopNav() {
             </TouchableOpacity>
           );
         })}
+
+        {/* Login Button (guests only) */}
+        {!user && (
+          <TouchableOpacity
+            // @ts-ignore
+            className="spotlet-login-btn"
+            style={webStyles.loginBtn}
+            onPress={() => router.push('/auth/login')}
+          >
+            <MaterialCommunityIcons name="login" size={18} color="#FFFFFF" />
+            <Text style={webStyles.loginBtnText}>Login</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -69,6 +121,7 @@ function WebTopNav() {
 function MobileWebBottomBar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user } = useAuth();
 
   const isActive = (name: string) => {
     if (name === '/(tabs)') return pathname === '/' || pathname === '/(tabs)';
@@ -76,9 +129,11 @@ function MobileWebBottomBar() {
     return pathname.includes(segment);
   };
 
+  const navItems = user ? LOGGED_IN_NAV_ITEMS : GUEST_NAV_ITEMS;
+
   return (
     <View style={mobileWebStyles.bottomBar}>
-      {NAV_ITEMS.map((item) => {
+      {navItems.map((item) => {
         const active = isActive(item.name);
         return (
           <TouchableOpacity
@@ -98,6 +153,17 @@ function MobileWebBottomBar() {
           </TouchableOpacity>
         );
       })}
+      {/* Login tab for guests */}
+      {!user && (
+        <TouchableOpacity
+          style={mobileWebStyles.tabItem}
+          onPress={() => router.push('/auth/login')}
+          activeOpacity={0.7}
+        >
+          <MaterialCommunityIcons name="login" size={24} color="#BB86FC" />
+          <Text style={[mobileWebStyles.tabLabel, mobileWebStyles.tabLabelActive]}>Login</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -206,16 +272,32 @@ const webStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1A1A1A',
+    backgroundColor: 'rgba(26, 26, 26, 0.95)',
     borderBottomWidth: 1,
-    borderBottomColor: '#2D2D2D',
+    borderBottomColor: 'rgba(45, 45, 45, 0.6)',
     paddingHorizontal: 32,
     height: 64,
+    // @ts-ignore - web backdrop filter
+    backdropFilter: 'blur(12px)',
+    // @ts-ignore
+    WebkitBackdropFilter: 'blur(12px)',
+    // @ts-ignore
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
   },
   brand: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  brandIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: 'rgba(187, 134, 252, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   brandText: {
     color: '#FFFFFF',
@@ -226,21 +308,21 @@ const webStyles = StyleSheet.create({
   navLinks: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   navLink: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 8,
   },
   navLinkActive: {
-    backgroundColor: 'rgba(187, 134, 252, 0.12)',
+    backgroundColor: 'rgba(187, 134, 252, 0.15)',
   },
   navLinkText: {
-    color: '#888888',
+    color: '#999999',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -248,8 +330,25 @@ const webStyles = StyleSheet.create({
     color: '#BB86FC',
     fontWeight: '700',
   },
+  loginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#BB86FC',
+    paddingHorizontal: 20,
+    paddingVertical: 9,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  loginBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   content: {
     flex: 1,
+    // @ts-ignore
+    overflow: 'auto',
   },
 });
 

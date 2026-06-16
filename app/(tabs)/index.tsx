@@ -29,11 +29,98 @@ import PropertyDetailsModal from '@/components/PropertyDetailsModal';
 import LoginPromptSheet from '@/components/LoginPromptSheet';
 import { useResponsive } from '@/utils/useResponsive';
 
+// Inject hover CSS for property cards on web
+if (Platform.OS === 'web') {
+  const homeStyle = document.createElement('style');
+  homeStyle.textContent = `
+    .spotlet-property-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      cursor: pointer;
+    }
+    .spotlet-property-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(187, 134, 252, 0.2);
+    }
+    .spotlet-search-container {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      width: 100% !important;
+      background-color: rgba(18, 18, 18, 0.75) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid rgba(45, 45, 45, 0.4) !important;
+      padding: 14px 0 !important;
+      transition: background-color 0.3s ease, border-color 0.3s ease !important;
+    }
+    .spotlet-search-bar {
+      display: flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      background-color: rgba(30, 30, 30, 0.55) !important;
+      border-radius: 14px !important;
+      padding: 0 18px !important;
+      height: 52px !important;
+      border: 1px solid rgba(187, 134, 252, 0.15) !important;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .spotlet-search-bar:focus-within {
+      border-color: rgba(187, 134, 252, 0.6) !important;
+      box-shadow: 0 0 25px rgba(187, 134, 252, 0.25), inset 0 0 10px rgba(187, 134, 252, 0.05) !important;
+      background-color: rgba(35, 35, 35, 0.85) !important;
+    }
+    .spotlet-sidebar {
+      position: sticky !important;
+      top: 96px !important;
+      max-height: calc(100vh - 140px) !important;
+      overflow-y: auto !important;
+      scrollbar-width: thin !important;
+    }
+    .spotlet-sidebar::-webkit-scrollbar {
+      width: 6px !important;
+    }
+    .spotlet-sidebar::-webkit-scrollbar-track {
+      background: transparent !important;
+    }
+    .spotlet-sidebar::-webkit-scrollbar-thumb {
+      background-color: rgba(187, 134, 252, 0.3) !important;
+      border-radius: 10px !important;
+    }
+    .spotlet-filter-option {
+      transition: background-color 0.15s ease;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+    .spotlet-filter-option:hover {
+      background-color: rgba(187, 134, 252, 0.06) !important;
+    }
+    .spotlet-heart-btn {
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+    .spotlet-heart-btn:hover {
+      transform: scale(1.15);
+    }
+    .spotlet-image-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.5));
+      pointer-events: none;
+    }
+  `;
+  document.head.appendChild(homeStyle);
+}
+
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=800&q=80';
 
 export default function HomeScreen() {
   const { user } = useAuth();
   const { isMobile, isDesktopWeb } = useResponsive();
+  const [searchFocused, setSearchFocused] = useState(false);
   
   const [properties, setProperties] = useState<Property[]>([]);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
@@ -261,13 +348,13 @@ export default function HomeScreen() {
 
   const renderWebSidebar = () => {
     const typeOptions = [
-      { label: 'All Rooms', value: 'All' },
-      { label: '1 BHK', value: '1BHK' },
-      { label: '2 BHK', value: '2BHK' },
-      { label: '3 BHK', value: '3BHK' },
-      { label: 'PG Listings', value: 'PG' },
-      { label: 'Single Rooms', value: 'Room' },
-      { label: 'Houses', value: 'Independent House' },
+      { label: 'All Rooms', value: 'All', icon: 'home-group' as const },
+      { label: '1 BHK', value: '1BHK', icon: 'door' as const },
+      { label: '2 BHK', value: '2BHK', icon: 'door-open' as const },
+      { label: '3 BHK', value: '3BHK', icon: 'home-city' as const },
+      { label: 'PG Listings', value: 'PG', icon: 'bunk-bed' as const },
+      { label: 'Single Rooms', value: 'Room', icon: 'bed' as const },
+      { label: 'Houses', value: 'Independent House', icon: 'home' as const },
     ];
 
     const furnishedOptions = [
@@ -283,14 +370,31 @@ export default function HomeScreen() {
     ];
 
     return (
-      <View style={webStyles.sidebar}>
-        <Text style={webStyles.sidebarTitle}>Filters</Text>
+      <View
+        // @ts-ignore
+        className="spotlet-sidebar"
+        style={[
+          webStyles.sidebar,
+          Platform.OS === 'web' ? {
+            position: 'sticky',
+            top: 96,
+            maxHeight: 'calc(100vh - 140px)',
+            overflowY: 'auto',
+          } : {}
+        ] as any}
+      >
+        <View style={webStyles.sidebarHeader}>
+          <MaterialCommunityIcons name="filter-variant" size={20} color="#BB86FC" />
+          <Text style={webStyles.sidebarTitle}>Filters</Text>
+        </View>
 
         {/* Property Type */}
         <Text style={webStyles.filterGroupTitle}>Property Type</Text>
         {typeOptions.map((opt) => (
           <TouchableOpacity
             key={opt.value}
+            // @ts-ignore
+            className="spotlet-filter-option"
             style={webStyles.filterOption}
             onPress={() => setSelectedType(opt.value)}
           >
@@ -300,11 +404,13 @@ export default function HomeScreen() {
             <Text style={[webStyles.filterOptionText, selectedType === opt.value && webStyles.filterOptionTextActive]}>
               {opt.label}
             </Text>
-            <Text style={webStyles.filterCount}>
-              {opt.value === 'All'
-                ? properties.length
-                : properties.filter((p) => p.type === opt.value).length}
-            </Text>
+            <View style={webStyles.filterCountBadge}>
+              <Text style={webStyles.filterCount}>
+                {opt.value === 'All'
+                  ? properties.length
+                  : properties.filter((p) => p.type === opt.value).length}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
 
@@ -315,6 +421,8 @@ export default function HomeScreen() {
         {furnishedOptions.map((opt) => (
           <TouchableOpacity
             key={opt.value}
+            // @ts-ignore
+            className="spotlet-filter-option"
             style={webStyles.filterOption}
             onPress={() => setSelectedFurnished(opt.value)}
           >
@@ -334,6 +442,8 @@ export default function HomeScreen() {
         {tenantOptions.map((opt) => (
           <TouchableOpacity
             key={opt.value}
+            // @ts-ignore
+            className="spotlet-filter-option"
             style={webStyles.filterOption}
             onPress={() => setSelectedForWhom(opt.value)}
           >
@@ -356,6 +466,7 @@ export default function HomeScreen() {
               setSelectedForWhom('All');
             }}
           >
+            <MaterialCommunityIcons name="close-circle-outline" size={16} color="#BB86FC" />
             <Text style={webStyles.clearFiltersBtnText}>Clear All Filters</Text>
           </TouchableOpacity>
         )}
@@ -370,7 +481,9 @@ export default function HomeScreen() {
     return (
       <TouchableOpacity
         key={item.id}
-        activeOpacity={0.95}
+        activeOpacity={1}
+        // @ts-ignore
+        className="spotlet-property-card"
         onPress={() => {
           setSelectedProperty(item);
           setShowDetailModal(true);
@@ -379,13 +492,21 @@ export default function HomeScreen() {
       >
         <View style={webStyles.cardImageContainer}>
           <Image source={{ uri: imgUrl }} style={webStyles.cardImage} />
+          {/* Gradient overlay on image */}
+          <View
+            // @ts-ignore
+            className="spotlet-image-overlay"
+            style={webStyles.cardImageOverlay}
+          />
           <TouchableOpacity
+            // @ts-ignore
+            className="spotlet-heart-btn"
             style={webStyles.cardHeart}
             onPress={() => handleSaveToggle(item.id)}
           >
             <MaterialCommunityIcons
               name={isSaved ? 'heart' : 'heart-outline'}
-              size={22}
+              size={20}
               color={isSaved ? '#CF6679' : '#FFFFFF'}
             />
           </TouchableOpacity>
@@ -401,7 +522,7 @@ export default function HomeScreen() {
           </View>
 
           <View style={webStyles.locationRow}>
-            <MaterialCommunityIcons name="map-marker" size={16} color="#BB86FC" />
+            <MaterialCommunityIcons name="map-marker" size={15} color="#BB86FC" />
             <Text style={webStyles.locationText} numberOfLines={1}>{item.address}</Text>
           </View>
 
@@ -413,20 +534,20 @@ export default function HomeScreen() {
 
           <View style={webStyles.cardBadges}>
             <View style={webStyles.badge}>
-              <MaterialCommunityIcons name="home-outline" size={14} color="#BB86FC" />
+              <MaterialCommunityIcons name="home-outline" size={13} color="#BB86FC" />
               <Text style={webStyles.badgeText}>{item.type}</Text>
             </View>
             <View style={webStyles.badge}>
-              <MaterialCommunityIcons name="sofa-single-outline" size={14} color="#03DAC6" />
+              <MaterialCommunityIcons name="sofa-single-outline" size={13} color="#03DAC6" />
               <Text style={webStyles.badgeText}>{item.furnished ? 'Furnished' : 'Unfurnished'}</Text>
             </View>
             <View style={webStyles.badge}>
-              <MaterialCommunityIcons name="account-group-outline" size={14} color="#03DAC6" />
+              <MaterialCommunityIcons name="account-group-outline" size={13} color="#03DAC6" />
               <Text style={webStyles.badgeText}>For {item.for_whom}</Text>
             </View>
             {item.deposit ? (
               <View style={webStyles.badge}>
-                <MaterialCommunityIcons name="cash" size={14} color="#FFB74D" />
+                <MaterialCommunityIcons name="cash" size={13} color="#FFB74D" />
                 <Text style={webStyles.badgeText}>Deposit: ₹{item.deposit.toLocaleString('en-IN')}</Text>
               </View>
             ) : null}
@@ -440,38 +561,84 @@ export default function HomeScreen() {
 
   if (isDesktopWeb) {
     return (
-      <View style={webStyles.container}>
-        {/* Header */}
+      <View
+        style={{ backgroundColor: '#121212', minHeight: '100%', width: '100%' }}
+      >
+        {/* Hero Header */}
         <View style={webStyles.headerBar}>
           <View style={webStyles.headerLeft}>
             <Text style={webStyles.headerSubtitle}>Find Your Perfect</Text>
             <Text style={webStyles.headerTitle}>Room & PG</Text>
           </View>
-          <Text style={webStyles.resultCount}>
-            {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
-          </Text>
-        </View>
-
-        {/* Search Bar */}
-        <View style={webStyles.searchContainer}>
-          <View style={webStyles.searchBar}>
-            <MaterialCommunityIcons name="magnify" size={22} color="#888888" />
-            <TextInput
-              placeholder="Search by area, title or landmark..."
-              placeholderTextColor="#666666"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              style={webStyles.searchInput}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialCommunityIcons name="close-circle" size={20} color="#888888" />
-              </TouchableOpacity>
-            )}
+          <View style={webStyles.headerRight}>
+            <View style={webStyles.resultBadge}>
+              <Text style={webStyles.resultCount}>
+                {filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'} found
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Main Content */}
+        {/* Search Bar */}
+        <View
+          // @ts-ignore
+          className="spotlet-search-container"
+          style={Platform.OS === 'web' ? {
+            position: 'sticky',
+            top: 0,
+            zIndex: 100,
+            width: '100%',
+            backgroundColor: 'rgba(18, 18, 18, 0.75)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderBottomWidth: 1,
+            borderBottomColor: 'rgba(45, 45, 45, 0.4)',
+            paddingVertical: 14,
+          } as any : {}}
+        >
+          <View style={webStyles.searchInnerContainer}>
+            <View
+              // @ts-ignore
+              className="spotlet-search-bar"
+              style={Platform.OS === 'web' ? {
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: 'rgba(30, 30, 30, 0.55)',
+                borderRadius: 14,
+                paddingHorizontal: 18,
+                height: 52,
+                borderWidth: 1,
+                borderColor: searchFocused ? 'rgba(187, 134, 252, 0.6)' : 'rgba(187, 134, 252, 0.15)',
+                shadowColor: '#BB86FC',
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: searchFocused ? 0.25 : 0,
+                shadowRadius: 15,
+              } as any : {}}
+            >
+              <MaterialCommunityIcons
+                name="magnify"
+                size={22}
+                color={searchFocused ? '#BB86FC' : '#888888'}
+              />
+              <TextInput
+                placeholder="Search by area, title or landmark..."
+                placeholderTextColor="#666666"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={webStyles.searchInput}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <MaterialCommunityIcons name="close-circle" size={20} color="#888888" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {/* Main Content — Sidebar + Cards */}
         <View style={webStyles.mainLayout}>
           {renderWebSidebar()}
 
@@ -493,9 +660,9 @@ export default function HomeScreen() {
                 <Text style={webStyles.messageSubtitle}>Fetching available spaces...</Text>
               </View>
             ) : filteredProperties.length > 0 ? (
-              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={webStyles.cardList}>
+              <View style={webStyles.cardList}>
                 {filteredProperties.map((item) => renderWebPropertyCard(item))}
-              </ScrollView>
+              </View>
             ) : (
               <View style={webStyles.centeredMessage}>
                 <MaterialCommunityIcons name="home-search-outline" size={64} color="#3D3D3D" />
@@ -925,49 +1092,61 @@ const webStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
   },
+  containerContent: {
+    // @ts-ignore
+    minHeight: '100%',
+  },
   headerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     paddingHorizontal: 40,
-    paddingTop: 24,
+    paddingTop: 28,
     paddingBottom: 8,
-    maxWidth: 1280,
+    maxWidth: 1320,
     width: '100%',
     alignSelf: 'center',
+    // @ts-ignore
+    minWidth: 0,
   },
   headerLeft: {},
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerSubtitle: {
     color: '#888888',
     fontSize: 14,
     fontWeight: '500',
+    letterSpacing: 0.3,
   },
   headerTitle: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
+    letterSpacing: -0.5,
+  },
+  resultBadge: {
+    backgroundColor: 'rgba(187, 134, 252, 0.1)',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(187, 134, 252, 0.2)',
   },
   resultCount: {
-    color: '#888888',
-    fontSize: 14,
+    color: '#BB86FC',
+    fontSize: 13,
+    fontWeight: '600',
   },
-  searchContainer: {
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    maxWidth: 1280,
+  searchContainer: {},
+  searchInnerContainer: {
+    maxWidth: 1320,
     width: '100%',
     alignSelf: 'center',
+    paddingHorizontal: 40,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 48,
-    borderWidth: 1,
-    borderColor: '#2D2D2D',
-  },
+  searchBar: {},
   searchInput: {
     flex: 1,
     color: '#FFFFFF',
@@ -978,50 +1157,62 @@ const webStyles = StyleSheet.create({
   },
   mainLayout: {
     flexDirection: 'row',
-    flex: 1,
-    maxWidth: 1280,
+    maxWidth: 1320,
     width: '100%',
     alignSelf: 'center',
     paddingHorizontal: 40,
-    gap: 24,
+    gap: 28,
+    paddingBottom: 48,
+    // @ts-ignore
+    minWidth: 0,
   },
   // ─── Sidebar ───
   sidebar: {
     width: 260,
+    // @ts-ignore
+    minWidth: 220,
     backgroundColor: '#1A1A1A',
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: '#2D2D2D',
     padding: 20,
     alignSelf: 'flex-start',
     marginTop: 8,
   },
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
   sidebarTitle: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 20,
   },
   filterGroupTitle: {
     color: '#BB86FC',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: 12,
+    marginBottom: 10,
+    marginTop: 4,
   },
   filterOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 6,
     gap: 10,
+    borderRadius: 6,
   },
   radio: {
     width: 18,
     height: 18,
     borderRadius: 9,
     borderWidth: 2,
-    borderColor: '#555555',
+    borderColor: '#4D4D4D',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1043,23 +1234,35 @@ const webStyles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  filterCountBadge: {
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    minWidth: 28,
+    alignItems: 'center',
+  },
   filterCount: {
-    color: '#666666',
-    fontSize: 12,
+    color: '#888888',
+    fontSize: 11,
+    fontWeight: '600',
   },
   filterDivider: {
     height: 1,
     backgroundColor: '#2D2D2D',
-    marginVertical: 16,
+    marginVertical: 14,
   },
   clearFiltersBtn: {
-    marginTop: 20,
-    backgroundColor: 'rgba(187, 134, 252, 0.1)',
+    marginTop: 16,
+    backgroundColor: 'rgba(187, 134, 252, 0.08)',
     paddingVertical: 10,
     borderRadius: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 6,
     borderWidth: 1,
-    borderColor: '#BB86FC',
+    borderColor: 'rgba(187, 134, 252, 0.3)',
   },
   clearFiltersBtnText: {
     color: '#BB86FC',
@@ -1070,45 +1273,62 @@ const webStyles = StyleSheet.create({
   contentArea: {
     flex: 1,
     marginTop: 8,
+    // @ts-ignore
+    minWidth: 0,
   },
   cardList: {
-    paddingBottom: 40,
-    gap: 16,
+    gap: 18,
   },
   // ─── Horizontal Card ───
   card: {
     flexDirection: 'row',
     backgroundColor: '#1E1E1E',
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#2D2D2D',
+    // @ts-ignore
+    minHeight: 190,
   },
   cardImageContainer: {
     width: 280,
-    height: 200,
+    // @ts-ignore
+    minWidth: 200,
     position: 'relative',
   },
   cardImage: {
     width: '100%',
     height: '100%',
+    // @ts-ignore
+    minHeight: 190,
     backgroundColor: '#2D2D2D',
+  },
+  cardImageOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
   },
   cardHeart: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(18, 18, 18, 0.7)',
+    backgroundColor: 'rgba(18, 18, 18, 0.65)',
     borderRadius: 18,
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
+    // @ts-ignore
+    backdropFilter: 'blur(4px)',
   },
   cardContent: {
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
+    // @ts-ignore
+    minWidth: 0,
   },
   cardTopRow: {
     flexDirection: 'row',
@@ -1117,7 +1337,7 @@ const webStyles = StyleSheet.create({
     gap: 16,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#FFFFFF',
     flex: 1,
@@ -1129,11 +1349,13 @@ const webStyles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
+    // @ts-ignore
+    flexShrink: 0,
   },
   priceText: {
     color: '#121212',
     fontWeight: '900',
-    fontSize: 16,
+    fontSize: 15,
   },
   priceUnit: {
     color: '#121212',
@@ -1153,37 +1375,36 @@ const webStyles = StyleSheet.create({
     flex: 1,
   },
   descriptionText: {
-    color: '#999999',
+    color: '#777777',
     fontSize: 13,
     lineHeight: 18,
-    marginTop: 8,
+    marginTop: 6,
   },
   cardBadges: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
+    gap: 6,
+    marginTop: 10,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#2D2D2D',
+    backgroundColor: 'rgba(45, 45, 45, 0.8)',
     borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
   },
   badgeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: '#BBBBBB',
     fontWeight: '500',
   },
   // ─── States ───
   centeredMessage: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
+    paddingVertical: 100,
   },
   messageTitle: {
     color: '#FFFFFF',

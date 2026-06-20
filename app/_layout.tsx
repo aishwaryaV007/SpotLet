@@ -90,10 +90,14 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === 'auth';
 
     try {
-      // GUEST BROWSING: Only redirect logged-in users away from auth pages.
-      // Non-logged-in users are allowed to access tabs freely.
+      // Logged-in users on auth pages → send to tabs (all platforms)
       if (isLoggedIn && inAuthGroup) {
         router.replace('/(tabs)');
+      }
+      // Mobile only: Force login before accessing app
+      // Web users can still browse as guests
+      else if (!isLoggedIn && !inAuthGroup && Platform.OS !== 'web') {
+        router.replace('/auth');
       }
     } catch (e) {
       console.warn('Router redirect failed:', e);

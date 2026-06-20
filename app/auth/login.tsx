@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { supabase } from '@/lib/supabase';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,8 +33,14 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     setGoogleError(null);
     try {
-      // Build the correct redirect URL for the current environment forcing custom scheme 'spotlet'
-      const redirectUrl = Linking.createURL('auth/callback', { scheme: 'spotlet' });
+      // Detect if we are running in Expo Go or standalone build
+      const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
+      
+      // Build the correct redirect URL: Expo Go needs its own dynamic scheme, standalone uses 'spotlet'
+      const redirectUrl = isExpoGo 
+        ? Linking.createURL('auth/callback') 
+        : Linking.createURL('auth/callback', { scheme: 'spotlet' });
+      
       console.log('OAuth redirect URL:', redirectUrl);
       
 

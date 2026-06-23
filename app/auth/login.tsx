@@ -33,6 +33,25 @@ export default function LoginScreen() {
     setGoogleLoading(true);
     setGoogleError(null);
     try {
+      if (Platform.OS === 'web') {
+        // On web, let Supabase redirect the main window. This prevents popup blocker issues.
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.origin,
+          },
+        });
+        
+        if (error) {
+          setGoogleError(error.message);
+          Alert.alert('Google Sign-In Error', error.message);
+          setGoogleLoading(false);
+        }
+        // Do not set loading to false on success; the page will redirect
+        return;
+      }
+
+      // -- Native Mobile Flow (iOS/Android) --
       // Detect if we are running in Expo Go or standalone build
       const isExpoGo = Constants.appOwnership === 'expo' || Constants.executionEnvironment === 'storeClient';
       
@@ -42,7 +61,6 @@ export default function LoginScreen() {
         : Linking.createURL('auth/callback', { scheme: 'spotlet' });
       
       console.log('OAuth redirect URL:', redirectUrl);
-      
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -112,7 +130,9 @@ export default function LoginScreen() {
       setGoogleError(err.message || 'Failed to start Google sign in');
       Alert.alert('Google Sign-In Error', err.message || 'Failed to start Google sign in');
     } finally {
-      setGoogleLoading(false);
+      if (Platform.OS !== 'web') {
+        setGoogleLoading(false);
+      }
     }
   };
 

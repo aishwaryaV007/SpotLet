@@ -48,6 +48,7 @@ const LOGGED_IN_NAV_ITEMS = [
   { name: '/(tabs)/map', label: 'Map', icon: 'map' as const },
   { name: '/(tabs)/add', label: 'Add Listing', icon: 'plus-circle' as const },
   { name: '/(tabs)/saved', label: 'Saved', icon: 'heart' as const },
+  { name: '/(tabs)/my-properties', label: 'My Listings', icon: 'home-city-outline' as const },
   { name: '/(tabs)/profile', label: 'Profile', icon: 'account' as const },
 ];
 
@@ -247,6 +248,15 @@ export default function TabsLayout() {
           title: 'Saved',
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="my-properties"
+        options={{
+          title: 'My Listings',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialCommunityIcons name="home-city-outline" size={size} color={color} />
           ),
         }}
       />

@@ -253,13 +253,14 @@ export async function getUserProfile(userId: string) {
 }
 
 /**
- * Fetch all available properties
+ * Fetch all available properties (excludes soft-deleted)
  */
 export async function fetchProperties() {
   try {
     const { data, error } = await supabase
       .from('properties')
       .select('*')
+      .or('is_deleted.is.null,is_deleted.eq.false')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -412,6 +413,131 @@ export async function checkIfSaved(userId: string, propertyId: string) {
     return { success: true, isSaved: !!data };
   } catch (err: any) {
     return { success: false, isSaved: false };
+  }
+}
+
+/**
+ * Fetch all properties owned by a specific user (including soft-deleted)
+ * Used for the My Properties Dashboard
+ */
+export async function fetchMyProperties(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('*')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      return { success: false, error: error.message, data: [] };
+    }
+    return { success: true, error: null, data: data || [] };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch your properties', data: [] };
+  }
+}
+
+/**
+ * Soft delete a property (set is_deleted = true)
+ * Verifies ownership before deleting
+ */
+export async function softDeleteProperty(propertyId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .update({ is_deleted: true })
+      .eq('id', propertyId)
+      .eq('owner_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message, data: null };
+    }
+    if (!data) {
+      return { success: false, error: 'Property not found or you do not have permission to delete it.', data: null };
+    }
+    return { success: true, error: null, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to delete property', data: null };
+  }
+}
+
+/**
+ * Restore a soft-deleted property (set is_deleted = false)
+ * Verifies ownership before restoring
+ */
+export async function restoreProperty(propertyId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .update({ is_deleted: false })
+      .eq('id', propertyId)
+      .eq('owner_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message, data: null };
+    }
+    if (!data) {
+      return { success: false, error: 'Property not found or you do not have permission to restore it.', data: null };
+    }
+    return { success: true, error: null, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to restore property', data: null };
+  }
+}
+
+/**
+ * Update property status (active, rented, inactive)
+ * Verifies ownership before updating
+ */
+export async function updatePropertyStatus(propertyId: string, userId: string, status: string) {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .update({ status })
+      .eq('id', propertyId)
+      .eq('owner_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message, data: null };
+    }
+    if (!data) {
+      return { success: false, error: 'Property not found or you do not have permission to update it.', data: null };
+    }
+    return { success: true, error: null, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update property status', data: null };
+  }
+}
+
+/**
+ * Update property details
+ * Verifies ownership before updating
+ */
+export async function updateProperty(propertyId: string, userId: string, updates: any) {
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .update(updates)
+      .eq('id', propertyId)
+      .eq('owner_id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message, data: null };
+    }
+    if (!data) {
+      return { success: false, error: 'Property not found or you do not have permission to update it.', data: null };
+    }
+    return { success: true, error: null, data };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update property', data: null };
   }
 }
 

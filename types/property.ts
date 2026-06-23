@@ -1,5 +1,6 @@
 export type PropertyType = '1BHK' | '2BHK' | '3BHK' | 'PG' | 'Room' | 'Independent House';
 export type ForWhomType = 'Family' | 'Bachelor' | 'Any';
+export type PropertyStatus = 'active' | 'rented' | 'inactive';
 
 export interface Property {
   id: string;
@@ -20,6 +21,8 @@ export interface Property {
   description?: string;
   owner_name?: string;
   amenities?: string[];
+  is_deleted?: boolean;
+  status?: PropertyStatus;
 }
 
 export interface User {

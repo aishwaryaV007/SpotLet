@@ -63,7 +63,8 @@ She's staying in a friend's house. She's already asked for 3 more days. She's on
 | Contacting owner | Wait for broker to relay messages | Tap **Call** or **WhatsApp** directly from the listing |
 | Saving favourites | Screenshot and forget | ❤️ Save listings to your account — synced across sessions |
 | Listing a property | Pay a broker; wait days for reach | Fill form → drop pin → upload photos → publish in minutes |
-| Authentication | Create account + password | Phone OTP — no email, no password, no friction |
+| Authentication | Create account + password | Phone OTP & Google Sign-In — zero friction |
+| Guest Browsing | Forced login to see anything | Browse map & listings freely, login only to contact or save |
 
 ---
 
@@ -158,7 +159,8 @@ She's staying in a friend's house. She's already asked for 3 more days. She's on
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 🔐 | **Phone OTP Auth** | Passwordless login via Supabase SMS OTP — works with any Indian mobile number |
+| 🔐 | **Authentication** | Passwordless Phone OTP & Google Sign-In — zero friction |
+| 🕵️ | **Guest Browsing** | Browse properties freely without an account; login only for protected actions |
 | 🏠 | **Home Feed** | Scrollable property cards with search, category filters, and pull-to-refresh |
 | 🗺️ | **Live Map** | Full-screen Google Maps with custom dark style, price-bubble markers, snap carousel |
 | 📍 | **GPS Location** | Real-time user location on map; auto-zoom on permission grant |
@@ -168,10 +170,11 @@ She's staying in a friend's house. She's already asked for 3 more days. She's on
 | 📬 | **Direct Contact** | One-tap `tel:` call or WhatsApp deep-link with pre-written message template |
 | ❤️ | **Save/Unsave** | Optimistic UI save/unsave with Supabase-backed persistence per user |
 | 💾 | **Saved Listings** | Dedicated tab showing all bookmarked properties with full detail modal |
+| 📊 | **My Properties** | Dashboard to manage your listings with edit, soft-delete, and restore actions |
 | 🌙 | **Dark Mode** | Full Material Design 3 dark theme via react-native-paper, zero light mode flicker |
 | 🔄 | **Session Persistence** | `onAuthStateChange` listener keeps session alive across app restarts |
-| 📱 | **Cross-Platform** | Runs on iOS · Android · Web via Expo SDK 54 |
-| 🛡️ | **Auth Guard** | Root router redirects to `/auth` or `/(tabs)` based on live session state |
+| 📱 | **Cross-Platform** | Runs on iOS · Android · Web via Expo SDK 54, with responsive layouts |
+| 🛡️ | **Auth Guard** | Guest access to feeds, with a smooth Login Prompt Sheet for protected actions |
 
 ---
 
@@ -285,7 +288,8 @@ SpotLet/                                  # Project root
 │   │   ├── map.tsx                       # 🗺️ Map: Google Maps + price markers + carousel + detail modal
 │   │   ├── add.tsx                       # ➕ List property: form + mini-map pin + photo upload
 │   │   ├── saved.tsx                     # ❤️ Saved listings: bookmarks + detail modal
-│   │   └── profile.tsx                   # 👤 Profile: phone display + sign out
+│   │   ├── my-properties.tsx             # 📊 My Properties: dashboard to edit, soft-delete, and restore
+│   │   └── profile.tsx                   # 👤 Profile: stats, account info, and sign out
 │   │
 │   └── auth/                             # Unauthenticated zone
 │       ├── _layout.tsx                   # Auth layout (Slot passthrough)
@@ -301,6 +305,7 @@ SpotLet/                                  # Project root
 ├── components/                           # Custom shared React components
 │   ├── CustomMap.tsx                     # Native maps wrapper (imports react-native-maps)
 │   ├── CustomMap.web.tsx                 # Web maps wrapper (mock fallback, no native imports)
+│   ├── LoginPromptSheet.tsx              # Bottom sheet prompting guests to login
 │   └── PropertyDetailsModal.tsx          # Bottom sheet / modal displaying property details
 │
 ├── contexts/
@@ -314,6 +319,9 @@ SpotLet/                                  # Project root
 ├── types/
 │   ├── auth.ts                           # AuthState · AuthUser · AuthSession · OTPResponse · UserProfile
 │   └── property.ts                       # Property · PropertyType · ForWhomType · SavedProperty · User
+│
+├── utils/
+│   └── useResponsive.ts                  # Hook for responsive web breakpoints
 │
 ├── .env                                  # ⚠️ Secret — gitignored (see .env.example)
 ├── .env.example                          # Template for required environment variables
@@ -428,6 +436,8 @@ CREATE TABLE public.properties (
   owner_name  text,
   amenities   text[],
   available   boolean DEFAULT true NOT NULL,
+  is_deleted  boolean DEFAULT false NOT NULL,
+  status      text DEFAULT 'active' CHECK (status IN ('active', 'rented', 'inactive')),
   created_at  timestamptz DEFAULT now() NOT NULL
 );
 
@@ -437,7 +447,7 @@ ALTER TABLE public.properties ENABLE ROW LEVEL SECURITY;
 -- Anyone can read available properties
 CREATE POLICY "Anyone can view properties"
   ON public.properties FOR SELECT
-  USING (available = true);
+  USING (available = true AND is_deleted = false);
 
 -- Only the owner can insert
 CREATE POLICY "Owners can insert their properties"
@@ -547,6 +557,11 @@ SpotLet doesn't just digitize rental listings — it **removes the middleman ent
 - [x] Pull-to-refresh on all feed screens
 - [x] Dark Material Design 3 theme (react-native-paper)
 - [x] Cross-platform support: iOS · Android · Web
+- [x] Google Sign-In authentication
+- [x] Guest browsing mode with login prompts for protected actions
+- [x] Responsive web design (mobile web bottom tabs + desktop layouts)
+- [x] "My Properties" dashboard with property stats
+- [x] Soft-delete & restore listings functionality
 
 ### 🔜 Planned
 
